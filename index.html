@@ -100,6 +100,7 @@
   <div class="nav-btns">
     <button onclick="pickReply()">💬 Pick Reply</button>
     <button onclick="pickComment()">💭 Pick Comment</button>
+    <button onclick="pickCaption()">🖊️ Pick Caption</button>
   </div>
 
   <!-- Accounts Modal -->
@@ -208,7 +209,18 @@
       copyToClipboard(firstValue);
       alert("Copied Comment: " + firstValue);
     }
-
+      async function pickCaption() {
+      try {
+        const res = await fetch(`${API_BASE}?sheet=Caption`);
+        const captions = await res.json();
+        const random = captions[Math.floor(Math.random() * captions.length)];
+        const value = Object.values(random)[0];
+        copyToClipboard(value);
+        alert("Copied Caption: " + value);
+      } catch (err) {
+        alert("Failed to load captions: " + err);
+      }
+    }
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).catch(() => {
         const temp = document.createElement("textarea");
