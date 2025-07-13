@@ -31,40 +31,46 @@
 </head>
 <body>
 
-  <div style="margin-top: 20px;">
-  <button onclick="prevProfile()">⬅️ Prev</button>
-  <button onclick="goToFirstProfile()">🔁 First</button>
-  <button onclick="nextProfile()">➡️ Next</button>
+  <div class="nav-btns">
+    <button onclick="prevProfile()">⬅️ Prev</button>
+    <button onclick="goToFirstProfile()">🔁 First</button>
+    <button onclick="nextProfile()">Next ➡️</button>
   </div>
 
-  <div id="profileDisplay" style="margin-top: 15px; font-size: 18px; padding: 10px; background: #f9f9f9; border-radius: 10px;">
-  <strong>Username:</strong> <span id="username">-</span><br>
-  <strong>Location:</strong> <span id="location">-</span><br>
-  <strong>Container ID:</strong> <span id="container">-</span>
+  <div class="profile-info" id="profileInfo">
+    <strong id="profileUsername">Username -</strong>
+    <span id="profileLocation">Location -</span>
+    <strong id="profileContainer">Container ID</strong>
   </div>
-  
-  <button onclick="fetchSheetData('Accounts')">📋 Show Accounts</button>
-  <button onclick="fetchSheetData('Posts')">📝 Show Posts</button>
-  <button onclick="pickReply()">💬 Pick Reply</button>
-  <button onclick="pickComment()">💭 Pick Comment</button>
 
-<div id="profileModal" class="modal">
-  <div class="modal-content">
-    <button onclick="closeModal('profileModal')" style="float: left; margin-bottom: 10px;">❌ Close</button>
-    <h3 style="text-align: center;">Profiles from Google Sheet</h3>
-    <table id="profileTable"></table>
+  <button onclick="openProfileModal()">👁 Show Accounts</button>
+  <button onclick="openPostsModal()">📑 Show Posts</button>
+
+  <!-- Profile Modal -->
+  <div id="profileModal" class="modal">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <button onclick="closeModal('profileModal')" style="font-size: 18px; border: none; background: none; cursor: pointer;">❌</button>
+        <h3 style="margin: 0 auto;">Profiles from Google Sheet</h3>
+        <div style="width: 32px;"></div> <!-- spacer for symmetry -->
+      </div>
+      <hr>
+      <table id="profileTable"></table>
+    </div>
   </div>
-</div>
 
-<div id="postsModal" class="modal">
-  <div class="modal-content">
-    <button onclick="closeModal('postsModal')" style="float: left; margin-bottom: 10px;">❌ Close</button>
-    <h3 style="text-align: center;">Posts from Google Sheet</h3>
-    <table id="postsTable"></table>
+  <!-- Posts Modal -->
+  <div id="postsModal" class="modal">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <button onclick="closeModal('postsModal')" style="font-size: 18px; border: none; background: none; cursor: pointer;">❌</button>
+        <h3 style="margin: 0 auto;">Posts from Google Sheet</h3>
+        <div style="width: 32px;"></div>
+      </div>
+      <hr>
+      <table id="postsTable"></table>
+    </div>
   </div>
-</div>
-
-  
   <script>
     const endpoint = "https://script.google.com/macros/s/AKfycbxYfnfQyubLOgLUgPYcLHA03jx0VD5h4DKeJ9HCLVYD3TErED7rN_BGP-veMs0qejtczA/exec"; // Replace with your actual Apps Script URL
     let accounts = [];
@@ -171,6 +177,11 @@
       alert("Failed to pick comment: " + err);
     }
   }
+
+    function closeModal(id) {
+  document.getElementById(id).style.display = "none";
+}
+
   // Auto load accounts on page open
   loadAccounts();
     
