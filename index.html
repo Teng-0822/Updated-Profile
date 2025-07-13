@@ -240,40 +240,25 @@ function getCurrentDay() {
 
 let usedPosts = {}; // Track used posts by day
 
-async function pickPost() {
-  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+unction pickPost() {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const today = days[new Date().getDay()];
-  const profileLocation = profiles[currentProfileIndex]?.location || "(loc)";
+  const pool = posts.map(row => row[today]).filter(Boolean).filter(post => !usedPosts.includes(post));
 
-  try {
-    const res = await fetch(`${API_BASE}?sheet=Posts`);
-    const posts = await res.json();
-    
-    if (!usedPosts[today]) usedPosts[today] = [];
-
-    // Filter posts that haven't been used
-    const unused = posts
-      .map(row => row[today])
-      .filter(p => p && !usedPosts[today].includes(p));
-
-    if (unused.length === 0) {
-      alert(`All posts for ${today} are used.`);
-      return;
-    }
-
-    // Pick one at random
-    const post = unused[Math.floor(Math.random() * unused.length)];
-    usedPosts[today].push(post);
-
-    // Replace (loc) with profile location
-    const replaced = post.replace(/\(loc\)/gi, profileLocation);
-    copyToClipboard(replaced);
-    alert("Copied Post: " + replaced);
-    
-  } catch (err) {
-    alert("Failed to load posts: " + err);
+  if (!pool.length) {
+    usedPosts = [];
+    showToast("All posts used. Resetting...");
+    return;
   }
+
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  usedPosts.push(pick);
+
+  const location = getCurrentLocation();
+  const replaced = pick.replace(/\(loc\)/gi, location);
+  copyToClipboard(replaced);
 }
+
 
     // Load accounts on first load
     window.onload = loadAccounts;
