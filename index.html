@@ -45,7 +45,21 @@
   
   <button onclick="fetchSheetData('Accounts')">📋 Show Accounts</button>
   <button onclick="fetchSheetData('Posts')">📝 Show Posts</button>
+  <div id="profileModal" class="modal">
+  <div class="modal-content">
+    <h3>Profiles from Google Sheet</h3>
+    <table id="profileTable"></table>
+    <button onclick="closeModal('profileModal')">❌ Close</button>
+  </div>
+</div>
 
+<div id="postsModal" class="modal">
+  <div class="modal-content">
+    <h3>Posts from Google Sheet</h3>
+    <table id="postsTable"></table>
+    <button onclick="closeModal('postsModal')">❌ Close</button>
+  </div>
+</div>
   <div id="output"></div>
 
   <script>
@@ -118,6 +132,42 @@
     showProfile(currentIndex);
   }
 
+    function copyToClipboard(text) {
+    navigator.clipboard.writeText(text)
+      .then(() => alert("Copied: " + text))
+      .catch(err => alert("Failed to copy: " + err));
+  }
+
+  // Utility to close modals
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  async function pickReply() {
+    try {
+      const res = await fetch(`${endpoint}?sheet=Reply`);
+      const data = await res.json();
+      if (data.length === 0) return alert("No replies found.");
+      const random = data[Math.floor(Math.random() * data.length)];
+      const text = Object.values(random)[0]; // get first column value
+      copyToClipboard(text);
+    } catch (err) {
+      alert("Failed to pick reply: " + err);
+    }
+  }
+
+  async function pickComment() {
+    try {
+      const res = await fetch(`${endpoint}?sheet=Comments`);
+      const data = await res.json();
+      if (data.length === 0) return alert("No comments found.");
+      const random = data[Math.floor(Math.random() * data.length)];
+      const text = Object.values(random)[0];
+      copyToClipboard(text);
+    } catch (err) {
+      alert("Failed to pick comment: " + err);
+    }
+  }
   // Auto load accounts on page open
   loadAccounts();
     
