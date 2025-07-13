@@ -199,7 +199,7 @@
       const random = replies[Math.floor(Math.random() * replies.length)];
       const firstValue = Object.values(random)[0];
       copyToClipboard(firstValue);
-      toast("Copied Reply: " + firstValue);
+      alert("Copied Reply: " + firstValue);
     }
 
     async function pickComment() {
@@ -208,7 +208,7 @@
       const random = comments[Math.floor(Math.random() * comments.length)];
       const firstValue = Object.values(random)[0];
       copyToClipboard(firstValue);
-      toast("Copied Comment: " + firstValue);
+      alert("Copied Comment: " + firstValue);
     }
       async function pickCaption() {
       try {
@@ -217,9 +217,9 @@
         const random = captions[Math.floor(Math.random() * captions.length)];
         const value = Object.values(random)[0];
         copyToClipboard(value);
-        toast("Copied Caption: " + value);
+        alert("Copied Caption: " + value);
       } catch (err) {
-        toast("Failed to load captions: " + err);
+        alert("Failed to load captions: " + err);
       }
     }
     function copyToClipboard(text) {
