@@ -4,275 +4,237 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Profile Manager</title>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    html, body {
       margin: 0;
-      padding: 16px;
-      background: #f5f8fa;
+      padding: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+      background: #f3f6fa;
       color: #333;
     }
     button {
-      padding: 12px;
-      margin: 6px 4px;
+      padding: 10px 14px;
+      margin: 5px;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
+      background: linear-gradient(to bottom, #fff, #e1ecf4);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
       font-size: 16px;
-      background: #007aff;
-      color: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       cursor: pointer;
-      flex: 1;
     }
     button:hover {
-      background: #005fcc;
+      background: #d4e6f1;
     }
-    .nav-btns {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-    .profile-card {
-      text-align: center;
-      padding: 14px;
-      margin: 12px 0;
-      background: white;
+    .profile-display {
+      background: #fff;
       border-radius: 12px;
+      padding: 12px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin: 10px 0;
     }
     .modal {
       display: none;
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.4);
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
       z-index: 1000;
+      align-items: center;
+      justify-content: center;
     }
     .modal-content {
-      background: white;
-      margin: 60px auto;
+      background: #fff;
       padding: 20px;
-      border-radius: 14px;
-      width: 90%;
-      max-height: 80%;
+      border-radius: 12px;
+      max-height: 80vh;
       overflow-y: auto;
+      width: 95%;
       position: relative;
     }
-    .close-btn {
+    .modal-content button.close-btn {
       position: absolute;
       top: 10px;
       left: 10px;
-      font-size: 20px;
-      background: none;
-      color: #444;
-      border: none;
+      background: #ffdddd;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
     }
     th, td {
-      padding: 8px;
       border: 1px solid #ccc;
-      text-align: left;
+      padding: 8px;
+    }
+    #toast {
+      visibility: hidden;
+      min-width: 200px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 10px;
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2000;
+    }
+    #toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2s;
+    }
+    @keyframes fadein {
+      from { bottom: 20px; opacity: 0; }
+      to { bottom: 30px; opacity: 1; }
+    }
+    @keyframes fadeout {
+      from { bottom: 30px; opacity: 1; }
+      to { bottom: 20px; opacity: 0; }
     }
   </style>
 </head>
 <body>
+  <div class="profile-display">
+    <div><strong>Username:</strong> <span id="username">-</span></div>
+    <div><strong>Location:</strong> <span id="location">-</span></div>
+    <div><strong>Container ID:</strong> <span id="container">-</span></div>
+  </div>
 
-  <div class="nav-btns">
+  <div>
     <button onclick="prevProfile()">⬅️ Prev</button>
-    <button onclick="firstProfile()">🔁 First</button>
+    <button onclick="goToFirstProfile()">🔁 First</button>
     <button onclick="nextProfile()">➡️ Next</button>
   </div>
 
-  <div class="profile-card">
-    <div><strong>Profile:</strong> <span id="username">-</span> – <span id="location">-</span> – <span id="container">-</span></div>
+  <div>
+    <button onclick="showModal('profileModal')">👁 Show Accounts</button>
+    <button onclick="showModal('postsModal')">📑 Show Posts</button>
+    <button onclick="pickRandom('Reply')">💬 Pick Reply</button>
+    <button onclick="pickRandom('Comments')">💭 Pick Comment</button>
+    <button onclick="pickRandom('Caption')">🖊 Pick Caption</button>
+    <button onclick="pickTodayPost()">📝 Pick Post</button>
   </div>
 
-  <div class="nav-btns">
-    <button onclick="openModal('accounts')">📄 Show Accounts</button>
-    <button onclick="openModal('posts')">📝 Show Posts</button>
-  </div>
-
-  <div class="nav-btns">
-    <button onclick="pickReply()">💬 Pick Reply</button>
-    <button onclick="pickComment()">💭 Pick Comment</button>
-    <button onclick="pickCaption()">🖊️ Pick Caption</button>
-    <button onclick="pickPost()">📅 Pick Post</button>
-  </div>
-
-  <!-- Accounts Modal -->
-  <div id="accountsModal" class="modal">
+  <div id="profileModal" class="modal">
     <div class="modal-content">
-      <button class="close-btn" onclick="closeModal('accountsModal')">❌</button>
-      <h3>Accounts</h3>
-      <table id="accountsTable"></table>
+      <button class="close-btn" onclick="hideModal('profileModal')">❌</button>
+      <h3>Accounts Sheet</h3>
+      <table id="profileTable"></table>
     </div>
   </div>
 
-  <!-- Posts Modal -->
   <div id="postsModal" class="modal">
     <div class="modal-content">
-      <button class="close-btn" onclick="closeModal('postsModal')">❌</button>
-      <h3>Posts</h3>
+      <button class="close-btn" onclick="hideModal('postsModal')">❌</button>
+      <h3>Posts Sheet</h3>
       <table id="postsTable"></table>
     </div>
   </div>
 
+  <div id="toast"></div>
+
   <script>
-    const API_BASE = 'https://script.google.com/macros/s/AKfycbxl9YgraQ_0ZHX90hsHf3L9U8QHDOVRtfegquHj-yLbbmeVdyvur_dToRDrsm9ThF7sMw/exec'; // <- Change this
+    const sheetUrl = 'https://script.google.com/macros/s/YOUR_DEPLOYED_SCRIPT_ID/exec';
+    let profiles = [], currentProfile = 0;
+    let sheetCache = {};
 
-    let profiles = [];
-    let currentIndex = 0;
-    let pickedPostIndexes = {};
+    async function fetchSheet(sheetName) {
+      if (sheetCache[sheetName]) return sheetCache[sheetName];
+      const res = await fetch(`${sheetUrl}?sheet=${sheetName}`);
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      sheetCache[sheetName] = data;
+      return data;
+    }
 
+    async function preloadSheets() {
+      sheetCache['Accounts'] = await fetchSheet('Accounts');
+      sheetCache['Posts'] = await fetchSheet('Posts');
+      sheetCache['Reply'] = await fetchSheet('Reply');
+      sheetCache['Comments'] = await fetchSheet('Comments');
+      sheetCache['Caption'] = await fetchSheet('Caption');
+      profiles = sheetCache['Accounts'];
+      displayProfile(0);
+    }
+
+    function displayProfile(index) {
+      if (profiles.length === 0) return;
+      currentProfile = (index + profiles.length) % profiles.length;
+      const profile = profiles[currentProfile];
+      document.getElementById('username').textContent = profile.username;
+      document.getElementById('location').textContent = profile.location;
+      document.getElementById('container').textContent = profile.container;
+    }
+
+    function nextProfile() { displayProfile(currentProfile + 1); }
+    function prevProfile() { displayProfile(currentProfile - 1); }
+    function goToFirstProfile() { displayProfile(0); }
+
+    function showModal(id) {
+      if (id === 'profileModal') loadAccounts();
+      if (id === 'postsModal') loadPosts();
+      document.getElementById(id).style.display = 'flex';
+    }
+    function hideModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
 
     async function loadAccounts() {
       try {
-        const res = await fetch(`${API_BASE}?sheet=Accounts`);
-        profiles = await res.json();
-        showProfile(0);
-        populateTable("accountsTable", profiles, ["Username", "Location", "Container ID"]);
-      } catch (err) {
-        alert("Failed to load accounts: " + err);
-      }
+        const accounts = await fetchSheet('Accounts');
+        const table = document.getElementById("profileTable");
+        table.innerHTML = '<tr><th>Username</th><th>Location</th><th>Container ID</th></tr>' +
+          accounts.map(p => `<tr><td>${p.username}</td><td>${p.location}</td><td>${p.container}</td></tr>`).join('');
+      } catch (e) { showToast("Failed to load accounts"); }
     }
 
     async function loadPosts() {
       try {
-        const res = await fetch(`${API_BASE}?sheet=Posts`);
-        const posts = await res.json();
-        populateTable("postsTable", posts, ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]);
-      } catch (err) {
-        alert("Failed to load posts: " + err);
-      }
+        const posts = await fetchSheet('Posts');
+        const table = document.getElementById("postsTable");
+        const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+        table.innerHTML = '<tr>' + days.map(d => `<th>${d}</th>`).join('') + '</tr>' +
+          posts.map(row => `<tr>` + days.map(day => `<td>${row[day] || ''}</td>`).join('') + '</tr>').join('');
+      } catch (e) { showToast("Failed to load posts"); }
     }
 
-    function showProfile(index) {
-      if (profiles.length === 0) return;
-      currentIndex = (index + profiles.length) % profiles.length;
-      const p = profiles[currentIndex];
-      document.getElementById("username").textContent = p["Username"] || "-";
-      document.getElementById("location").textContent = p["Location"] || "-";
-      document.getElementById("container").textContent = p["Container ID"] || "-";
-    }
-
-    function prevProfile() {
-      showProfile(currentIndex - 1);
-    }
-
-    function nextProfile() {
-      showProfile(currentIndex + 1);
-    }
-
-    function firstProfile() {
-      showProfile(0);
-    }
-
-    function openModal(type) {
-      if (type === 'accounts') {
-        document.getElementById('accountsModal').style.display = 'block';
-        loadAccounts();
-      } else if (type === 'posts') {
-        document.getElementById('postsModal').style.display = 'block';
-        loadPosts();
-      }
-    }
-
-    function closeModal(id) {
-      document.getElementById(id).style.display = 'none';
-    }
-
-    function populateTable(tableId, data, headers) {
-      const table = document.getElementById(tableId);
-      const rows = [headers.map(h => `<th>${h}</th>`).join("")];
-      for (const row of data) {
-        rows.push(`<tr>${headers.map(h => `<td>${row[h] || ""}</td>`).join("")}</tr>`);
-      }
-      table.innerHTML = rows.join("");
-    }
-
-    async function pickReply() {
-      const res = await fetch(`${API_BASE}?sheet=Reply`);
-      const replies = await res.json();
-      const random = replies[Math.floor(Math.random() * replies.length)];
-      const firstValue = Object.values(random)[0];
-      copyToClipboard(firstValue);
-      alert("Copied Reply: " + firstValue);
-    }
-
-    async function pickComment() {
-      const res = await fetch(`${API_BASE}?sheet=Comments`);
-      const comments = await res.json();
-      const random = comments[Math.floor(Math.random() * comments.length)];
-      const firstValue = Object.values(random)[0];
-      copyToClipboard(firstValue);
-      alert("Copied Comment: " + firstValue);
-    }
-      async function pickCaption() {
+    async function pickRandom(sheetName) {
       try {
-        const res = await fetch(`${API_BASE}?sheet=Caption`);
-        const captions = await res.json();
-        const random = captions[Math.floor(Math.random() * captions.length)];
-        const value = Object.values(random)[0];
-        copyToClipboard(value);
-        alert("Copied Caption: " + value);
-      } catch (err) {
-        alert("Failed to load captions: " + err);
+        showToast(`Picking ${sheetName}...`);
+        const data = await fetchSheet(sheetName);
+        const choice = data[Math.floor(Math.random() * data.length)];
+        const value = Object.values(choice)[0];
+        await navigator.clipboard.writeText(value);
+        showToast(`${sheetName} copied!`);
+      } catch (e) {
+        showToast("Error picking " + sheetName);
       }
     }
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).catch(() => {
-        const temp = document.createElement("textarea");
-        temp.value = text;
-        document.body.appendChild(temp);
-        temp.select();
-        document.execCommand("copy");
-        document.body.removeChild(temp);
-      });
-    }
-async function pickTodayPost() {
-  try {
-    const posts = await fetchSheet('Posts');
-    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const today = days[new Date().getDay()];
 
-    // Gather available posts for today
-    const todayPosts = posts.map((row, index) => ({ text: row[today], index })).filter(p => p.text);
-
-    if (!pickedPostIndexes[today]) pickedPostIndexes[today] = [];
-
-    // Filter out previously picked indexes
-    const unusedPosts = todayPosts.filter(p => !pickedPostIndexes[today].includes(p.index));
-
-    if (unusedPosts.length === 0) {
-      // Reset if all have been used
-      pickedPostIndexes[today] = [];
-      alert("All posts used for today. Resetting pool.");
-      return;
+    async function pickTodayPost() {
+      try {
+        showToast("Picking post...");
+        const posts = await fetchSheet('Posts');
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const today = days[new Date().getDay()];
+        const available = posts.map(r => r[today]).filter(v => v);
+        if (available.length === 0) return showToast("No posts for today!");
+        const random = available[Math.floor(Math.random() * available.length)];
+        const loc = profiles[currentProfile]?.location || "";
+        const replaced = random.replace(/\(loc\)/gi, loc);
+        await navigator.clipboard.writeText(replaced);
+        showToast("Post copied with location!");
+      } catch (e) {
+        showToast("Error picking post");
+      }
     }
 
-    // Pick a random unused post
-    const random = unusedPosts[Math.floor(Math.random() * unusedPosts.length)];
-    pickedPostIndexes[today].push(random.index);
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.className = "show";
+      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+    }
 
-    // Replace (loc) with current location
-    const loc = profiles[currentProfile]?.location || "";
-    const finalText = random.text.replace(/\(loc\)/gi, loc);
-
-    await navigator.clipboard.writeText(finalText);
-    alert("Post copied with location!");
-
-  } catch (e) {
-    alert("Error picking post: " + e);
-  }
-}
-  
-
-    // Load accounts on first load
-    window.onload = loadAccounts;
+    window.onload = preloadSheets;
   </script>
-
 </body>
 </html>
