@@ -230,35 +230,43 @@
         document.body.removeChild(temp);
       });
     }
+async function pickTodayPost() {
+  try {
+    const posts = await fetchSheet('Posts');
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const today = days[new Date().getDay()];
 
-    let pickedPosts = {}; // Store picked indexes per day
+    // Gather available posts for today
+    const todayPosts = posts.map((row, index) => ({ text: row[today], index })).filter(p => p.text);
 
-function getCurrentDay() {
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  return days[new Date().getDay()];
-}
+    if (!pickedPostIndexes[today]) pickedPostIndexes[today] = [];
 
-let usedPosts = {}; // Track used posts by day
+    // Filter out previously picked indexes
+    const unusedPosts = todayPosts.filter(p => !pickedPostIndexes[today].includes(p.index));
 
-unction pickPost() {
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const today = days[new Date().getDay()];
-  const pool = posts.map(row => row[today]).filter(Boolean).filter(post => !usedPosts.includes(post));
+    if (unusedPosts.length === 0) {
+      // Reset if all have been used
+      pickedPostIndexes[today] = [];
+      alert("All posts used for today. Resetting pool.");
+      return;
+    }
 
-  if (!pool.length) {
-    usedPosts = [];
-    showToast("All posts used. Resetting...");
-    return;
+    // Pick a random unused post
+    const random = unusedPosts[Math.floor(Math.random() * unusedPosts.length)];
+    pickedPostIndexes[today].push(random.index);
+
+    // Replace (loc) with current location
+    const loc = profiles[currentProfile]?.location || "";
+    const finalText = random.text.replace(/\(loc\)/gi, loc);
+
+    await navigator.clipboard.writeText(finalText);
+    alert("Post copied with location!");
+
+  } catch (e) {
+    alert("Error picking post: " + e);
   }
-
-  const pick = pool[Math.floor(Math.random() * pool.length)];
-  usedPosts.push(pick);
-
-  const location = getCurrentLocation();
-  const replaced = pick.replace(/\(loc\)/gi, location);
-  copyToClipboard(replaced);
 }
-
+  
 
     // Load accounts on first load
     window.onload = loadAccounts;
