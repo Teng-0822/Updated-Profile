@@ -83,6 +83,34 @@
       background: #ddd;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #fff;
+      margin: 5% auto;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-height: 80%;
+      overflow-y: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
@@ -108,18 +136,42 @@
   <button onclick="searchLocation(); nextProfile()">🔍Location</button>
 
   <button onclick="openProfileModal()">👁 Show Profiles</button>
-  <button onclick="openPostModal()">📑 Show Posts</button>
+  <button onclick="openPostsModal()">📑 Show Posts</button>
+
+  <div id="profileModal" class="modal">
+    <div class="modal-content">
+      <h3>Profiles from Google Sheet</h3>
+      <table id="profileTable"></table>
+      <button onclick="document.getElementById('profileModal').style.display='none'">Close</button>
+    </div>
+  </div>
+
+  <div id="postsModal" class="modal">
+    <div class="modal-content">
+      <h3>Posts from Google Sheet</h3>
+      <table id="postsTable"></table>
+      <button onclick="document.getElementById('postsModal').style.display='none'">Close</button>
+    </div>
+  </div>
 
   <div id="toast"></div>
   <script>
     async function openProfileModal() {
-      await fetchProfilesFromSheet();
+      const res = await fetch("https://script.google.com/macros/s/AKfycbwNZ9BP9EqHY4_hJ2g43PpvfpMw8SPAJwDdtMjyJ4wwqj-MAHTHqdl1TfKxvzJQyav5jQ/exec?sheet=Accounts");
+      const data = await res.json();
+      const table = document.getElementById("profileTable");
+      table.innerHTML = "<tr><th>Username</th><th>Location</th><th>Container ID</th></tr>" +
+        data.map(row => `<tr><td>${row.username}</td><td>${row.location}</td><td>${row.container}</td></tr>`).join("");
       document.getElementById("profileModal").style.display = "block";
     }
 
-    async function openPostModal() {
-      await fetchPostsFromSheet();
-      document.getElementById("postModal").style.display = "block";
+    async function openPostsModal() {
+      const res = await fetch("https://script.google.com/macros/s/AKfycbwNZ9BP9EqHY4_hJ2g43PpvfpMw8SPAJwDdtMjyJ4wwqj-MAHTHqdl1TfKxvzJQyav5jQ/exec?sheet=Posts");
+      const data = await res.json();
+      const table = document.getElementById("postsTable");
+      table.innerHTML = "<tr><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Sunday</th></tr>" +
+        data.map(row => `<tr><td>${row.Monday}</td><td>${row.Tuesday}</td><td>${row.Wednesday}</td><td>${row.Thursday}</td><td>${row.Friday}</td><td>${row.Saturday}</td><td>${row.Sunday}</td></tr>`).join("");
+      document.getElementById("postsModal").style.display = "block";
     }
   </script>
 </body>
