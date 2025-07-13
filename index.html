@@ -371,9 +371,23 @@ function handlePaste(event) {
     document.getElementById("c" + i).value = cols[2] || "";
   }
 }
-
-function openProfileModal() {
-  buildProfileTable();
+async function fetchProfilesFromSheet() {
+  try {
+    const res = await fetch("https://script.google.com/macros/s/AKfycbwNZ9BP9EqHY4_hJ2g43PpvfpMw8SPAJwDdtMjyJ4wwqj-MAHTHqdl1TfKxvzJQyav5jQ/exec");
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      profiles = data;
+      localStorage.setItem("profiles", JSON.stringify(profiles));
+      buildProfileTable(); // rebuild the table with latest
+    } else {
+      alert("Invalid data format from sheet.");
+    }
+  } catch (e) {
+    alert("Failed to fetch profiles from sheet: " + e.message);
+  }
+}
+async function openProfileModal() {
+  await fetchProfilesFromSheet(); // ⬅️ fetch data from your Google Sheet
   document.getElementById("profileModal").style.display = "block";
 }
 
