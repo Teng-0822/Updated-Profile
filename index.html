@@ -4,210 +4,225 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Profile Manager</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
+    body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-      background-color: #f2f5fa;
-      touch-action: manipulation;
-    }
-    button, input, label {
-      touch-action: manipulation;
-    }
-    .container {
+      margin: 0;
       padding: 16px;
+      background: #f5f8fa;
+      color: #333;
     }
     button {
-      padding: 12px 16px;
+      padding: 12px;
       margin: 6px 4px;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       font-size: 16px;
-      background: linear-gradient(to bottom, #ffffff, #dce9f9);
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      background: #007aff;
+      color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       cursor: pointer;
+      flex: 1;
     }
     button:hover {
-      background: #eaf3fc;
+      background: #005fcc;
     }
-    .profile-info {
-      background: #fff;
-      padding: 12px;
-      margin: 16px 0;
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    .nav-btns {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .profile-card {
       text-align: center;
-      font-size: 16px;
+      padding: 14px;
+      margin: 12px 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     .modal {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background: rgba(0,0,0,0.4);
       z-index: 1000;
-      justify-content: center;
-      align-items: center;
     }
     .modal-content {
       background: white;
-      width: 95%;
+      margin: 60px auto;
+      padding: 20px;
+      border-radius: 14px;
+      width: 90%;
       max-height: 80%;
       overflow-y: auto;
-      border-radius: 16px;
-      padding: 20px;
       position: relative;
-    }
-    .modal-content table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .modal-content th, .modal-content td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      font-size: 14px;
     }
     .close-btn {
       position: absolute;
       top: 10px;
       left: 10px;
-      background: #ff5c5c;
-      color: white;
+      font-size: 20px;
+      background: none;
+      color: #444;
       border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      font-size: 18px;
-      line-height: 30px;
-      text-align: center;
-      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: left;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="nav-btns">
-      <button onclick="prevProfile()">⬅️ Prev</button>
-      <button onclick="goToFirstProfile()">🔁 First</button>
-      <button onclick="nextProfile()">Next ➡️</button>
-    </div>
 
-    <div class="profile-info">
-      <div><strong id="profileUsername">Username -</strong></div>
-      <div><span id="profileLocation">Location -</span></div>
-      <div><strong id="profileContainer">Container ID</strong></div>
-    </div>
-
-    <button onclick="openProfileModal()">👁 Show Accounts</button>
-    <button onclick="openPostsModal()">📑 Show Posts</button>
-    <button onclick="pickRandomReply()">💬 Pick Reply</button>
-    <button onclick="pickRandomComment()">💬 Pick Comment</button>
+  <div class="nav-btns">
+    <button onclick="prevProfile()">⬅️ Prev</button>
+    <button onclick="firstProfile()">🔁 First</button>
+    <button onclick="nextProfile()">➡️ Next</button>
   </div>
 
-  <div id="profileModal" class="modal">
+  <div class="profile-card">
+    <div><strong>Username:</strong> <span id="username">-</span></div>
+    <div><strong>Location:</strong> <span id="location">-</span></div>
+    <div><strong>Container ID:</strong> <span id="container">-</span></div>
+  </div>
+
+  <div class="nav-btns">
+    <button onclick="openModal('accounts')">📄 Show Accounts</button>
+    <button onclick="openModal('posts')">📝 Show Posts</button>
+  </div>
+
+  <div class="nav-btns">
+    <button onclick="pickReply()">💬 Pick Reply</button>
+    <button onclick="pickComment()">💭 Pick Comment</button>
+  </div>
+
+  <!-- Accounts Modal -->
+  <div id="accountsModal" class="modal">
     <div class="modal-content">
-      <button class="close-btn" onclick="closeModal('profileModal')">×</button>
-      <h3>Profiles</h3>
-      <table id="profileTable"></table>
+      <button class="close-btn" onclick="closeModal('accountsModal')">❌</button>
+      <h3>Accounts</h3>
+      <table id="accountsTable"></table>
     </div>
   </div>
 
+  <!-- Posts Modal -->
   <div id="postsModal" class="modal">
     <div class="modal-content">
-      <button class="close-btn" onclick="closeModal('postsModal')">×</button>
+      <button class="close-btn" onclick="closeModal('postsModal')">❌</button>
       <h3>Posts</h3>
       <table id="postsTable"></table>
     </div>
   </div>
 
   <script>
-    const endpoint = "https://script.google.com/macros/s/AKfycbwNZ9BP9EqHY4_hJ2g43PpvfpMw8SPAJwDdtMjyJ4wwqj-MAHTHqdl1TfKxvzJQyav5jQ/exec";
+    const API_BASE = 'https://script.google.com/macros/s/AKfycbxl9YgraQ_0ZHX90hsHf3L9U8QHDOVRtfegquHj-yLbbmeVdyvur_dToRDrsm9ThF7sMw/exec'; // <- Change this
+
     let profiles = [];
     let currentIndex = 0;
 
-    async function fetchSheet(sheetName) {
-      const res = await fetch(`${endpoint}?sheet=${sheetName}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+    async function loadAccounts() {
+      try {
+        const res = await fetch(`${API_BASE}?sheet=Accounts`);
+        profiles = await res.json();
+        showProfile(0);
+        populateTable("accountsTable", profiles, ["Username", "Location", "Container ID"]);
+      } catch (err) {
+        alert("Failed to load accounts: " + err);
+      }
     }
 
-    async function loadProfiles() {
+    async function loadPosts() {
       try {
-        profiles = await fetchSheet("Accounts");
-        showProfile(0);
-      } catch (e) {
-        alert("Failed to load accounts: " + e.message);
+        const res = await fetch(`${API_BASE}?sheet=Posts`);
+        const posts = await res.json();
+        populateTable("postsTable", posts, ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]);
+      } catch (err) {
+        alert("Failed to load posts: " + err);
       }
     }
 
     function showProfile(index) {
-      if (!profiles[index]) return;
-      const data = profiles[index];
-      document.getElementById("profileUsername").textContent = data.username;
-      document.getElementById("profileLocation").textContent = data.location;
-      document.getElementById("profileContainer").textContent = data.container;
-    }
-
-    function nextProfile() {
-      if (currentIndex < profiles.length - 1) {
-        currentIndex++;
-        showProfile(currentIndex);
-      }
+      if (profiles.length === 0) return;
+      currentIndex = (index + profiles.length) % profiles.length;
+      const p = profiles[currentIndex];
+      document.getElementById("username").textContent = p["Username"] || "-";
+      document.getElementById("location").textContent = p["Location"] || "-";
+      document.getElementById("container").textContent = p["Container ID"] || "-";
     }
 
     function prevProfile() {
-      if (currentIndex > 0) {
-        currentIndex--;
-        showProfile(currentIndex);
+      showProfile(currentIndex - 1);
+    }
+
+    function nextProfile() {
+      showProfile(currentIndex + 1);
+    }
+
+    function firstProfile() {
+      showProfile(0);
+    }
+
+    function openModal(type) {
+      if (type === 'accounts') {
+        document.getElementById('accountsModal').style.display = 'block';
+        loadAccounts();
+      } else if (type === 'posts') {
+        document.getElementById('postsModal').style.display = 'block';
+        loadPosts();
       }
     }
 
-    function goToFirstProfile() {
-      currentIndex = 0;
-      showProfile(currentIndex);
-    }
-
-    async function openProfileModal() {
-      const data = await fetchSheet("Accounts");
-      const table = document.getElementById("profileTable");
-      table.innerHTML = "<tr><th>Username</th><th>Location</th><th>Container</th></tr>" +
-        data.map(row => `<tr><td>${row.username}</td><td>${row.location}</td><td>${row.container}</td></tr>`).join("");
-      document.getElementById("profileModal").style.display = "flex";
-    }
-
-    async function openPostsModal() {
-      const data = await fetchSheet("Posts");
-      const table = document.getElementById("postsTable");
-      table.innerHTML = "<tr><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Sunday</th></tr>" +
-        data.map(row => `<tr><td>${row.Monday}</td><td>${row.Tuesday}</td><td>${row.Wednesday}</td><td>${row.Thursday}</td><td>${row.Friday}</td><td>${row.Saturday}</td><td>${row.Sunday}</td></tr>`).join("");
-      document.getElementById("postsModal").style.display = "flex";
-    }
-
     function closeModal(id) {
-      document.getElementById(id).style.display = "none";
+      document.getElementById(id).style.display = 'none';
     }
 
-    async function pickRandomReply() {
-      const data = await fetchSheet("Reply");
-      const random = data[Math.floor(Math.random() * data.length)].reply;
-      copyToClipboard(random);
-      alert("Copied reply: " + random);
+    function populateTable(tableId, data, headers) {
+      const table = document.getElementById(tableId);
+      const rows = [headers.map(h => `<th>${h}</th>`).join("")];
+      for (const row of data) {
+        rows.push(`<tr>${headers.map(h => `<td>${row[h] || ""}</td>`).join("")}</tr>`);
+      }
+      table.innerHTML = rows.join("");
     }
 
-    async function pickRandomComment() {
-      const data = await fetchSheet("Comments");
-      const random = data[Math.floor(Math.random() * data.length)].comment;
-      copyToClipboard(random);
-      alert("Copied comment: " + random);
+    async function pickReply() {
+      const res = await fetch(`${API_BASE}?sheet=Reply`);
+      const replies = await res.json();
+      const random = replies[Math.floor(Math.random() * replies.length)];
+      const firstValue = Object.values(random)[0];
+      copyToClipboard(firstValue);
+      alert("Copied Reply: " + firstValue);
+    }
+
+    async function pickComment() {
+      const res = await fetch(`${API_BASE}?sheet=Comments`);
+      const comments = await res.json();
+      const random = comments[Math.floor(Math.random() * comments.length)];
+      const firstValue = Object.values(random)[0];
+      copyToClipboard(firstValue);
+      alert("Copied Comment: " + firstValue);
     }
 
     function copyToClipboard(text) {
-      navigator.clipboard.writeText(text);
+      navigator.clipboard.writeText(text).catch(() => {
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+      });
     }
 
-    loadProfiles();
+    // Load accounts on first load
+    window.onload = loadAccounts;
   </script>
+
 </body>
 </html>
