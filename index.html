@@ -101,6 +101,7 @@
     <button onclick="pickReply()">💬 Pick Reply</button>
     <button onclick="pickComment()">💭 Pick Comment</button>
     <button onclick="pickCaption()">🖊️ Pick Caption</button>
+    <button onclick="pickPost()">📅 Pick Post</button>
   </div>
 
   <!-- Accounts Modal -->
@@ -198,7 +199,7 @@
       const random = replies[Math.floor(Math.random() * replies.length)];
       const firstValue = Object.values(random)[0];
       copyToClipboard(firstValue);
-      alert("Copied Reply: " + firstValue);
+      toast("Copied Reply: " + firstValue);
     }
 
     async function pickComment() {
@@ -207,7 +208,7 @@
       const random = comments[Math.floor(Math.random() * comments.length)];
       const firstValue = Object.values(random)[0];
       copyToClipboard(firstValue);
-      alert("Copied Comment: " + firstValue);
+      toast("Copied Comment: " + firstValue);
     }
       async function pickCaption() {
       try {
@@ -216,9 +217,9 @@
         const random = captions[Math.floor(Math.random() * captions.length)];
         const value = Object.values(random)[0];
         copyToClipboard(value);
-        alert("Copied Caption: " + value);
+        toast("Copied Caption: " + value);
       } catch (err) {
-        alert("Failed to load captions: " + err);
+        toast("Failed to load captions: " + err);
       }
     }
     function copyToClipboard(text) {
@@ -231,6 +232,50 @@
         document.body.removeChild(temp);
       });
     }
+
+    let pickedPosts = {}; // Store picked indexes per day
+
+function getCurrentDay() {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  return days[new Date().getDay()];
+}
+
+let usedPosts = {}; // Track used posts by day
+
+async function pickPost() {
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const today = days[new Date().getDay()];
+  const profileLocation = profiles[currentProfileIndex]?.location || "(loc)";
+
+  try {
+    const res = await fetch(`${API_BASE}?sheet=Posts`);
+    const posts = await res.json();
+    
+    if (!usedPosts[today]) usedPosts[today] = [];
+
+    // Filter posts that haven't been used
+    const unused = posts
+      .map(row => row[today])
+      .filter(p => p && !usedPosts[today].includes(p));
+
+    if (unused.length === 0) {
+      alert(`All posts for ${today} are used.`);
+      return;
+    }
+
+    // Pick one at random
+    const post = unused[Math.floor(Math.random() * unused.length)];
+    usedPosts[today].push(post);
+
+    // Replace (loc) with profile location
+    const replaced = post.replace(/\(loc\)/gi, profileLocation);
+    copyToClipboard(replaced);
+    alert("Copied Post: " + replaced);
+    
+  } catch (err) {
+    alert("Failed to load posts: " + err);
+  }
+}
 
     // Load accounts on first load
     window.onload = loadAccounts;
