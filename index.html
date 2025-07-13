@@ -159,48 +159,21 @@
     const SHEET_URL = "https://script.google.com/macros/s/AKfycbwNZ9BP9EqHY4_hJ2g43PpvfpMw8SPAJwDdtMjyJ4wwqj-MAHTHqdl1TfKxvzJQyav5jQ/exec";
 
 async function openProfileModal() {
-  try {
-    const res = await fetch(`${SHEET_URL}?sheet=Accounts`);
-    const data = await res.json();
-    if (Array.isArray(data)) {
-      const tbody = document.querySelector("#profileTable tbody");
-      tbody.innerHTML = "";
-      data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${row.username}</td><td>${row.location}</td><td>${row.container}</td>`;
-        tbody.appendChild(tr);
-      });
-      document.getElementById("profileModal").style.display = "block";
-    } else {
-      alert("Invalid profile data.");
-    }
-  } catch (e) {
-    alert("Failed to fetch profiles: " + e.message);
-  }
+  const res = await fetch("https://script.google.com/macros/s/AKfycbwNZ9BP9EqHY4_hJ2g43PpvfpMw8SPAJwDdtMjyJ4wwqj-MAHTHqdl1TfKxvzJQyav5jQ/exec?sheet=Accounts");
+  const data = await res.json();
+  const table = document.getElementById("profileTable");
+  table.innerHTML = "<tr><th>Username</th><th>Location</th><th>Container ID</th></tr>" +
+    data.map(row => `<tr><td>${row.Username}</td><td>${row.Location}</td><td>${row["Container ID"]}</td></tr>`).join("");
+  document.getElementById("profileModal").style.display = "block";
 }
 
-async function openPostModal() {
-  try {
-    const res = await fetch(`${SHEET_URL}?sheet=Posts`);
-    const data = await res.json();
-    if (Array.isArray(data)) {
-      const tbody = document.querySelector("#postTable tbody");
-      tbody.innerHTML = "";
-      data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${row.Monday || ""}</td><td>${row.Tuesday || ""}</td><td>${row.Wednesday || ""}</td>
-          <td>${row.Thursday || ""}</td><td>${row.Friday || ""}</td><td>${row.Saturday || ""}</td><td>${row.Sunday || ""}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-      document.getElementById("postModal").style.display = "block";
-    } else {
-      alert("Invalid post data.");
-    }
-  } catch (e) {
-    alert("Failed to fetch posts: " + e.message);
-  }
+async function openPostsModal() {
+  const res = await fetch("https://script.google.com/macros/s/AKfycbwNZ9BP9EqHY4_hJ2g43PpvfpMw8SPAJwDdtMjyJ4wwqj-MAHTHqdl1TfKxvzJQyav5jQ/exec?sheet=Posts");
+  const data = await res.json();
+  const table = document.getElementById("postsTable");
+  table.innerHTML = "<tr><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Sunday</th></tr>" +
+    data.map(row => `<tr><td>${row.Monday}</td><td>${row.Tuesday}</td><td>${row.Wednesday}</td><td>${row.Thursday}</td><td>${row.Friday}</td><td>${row.Saturday}</td><td>${row.Sunday}</td></tr>`).join("");
+  document.getElementById("postsModal").style.display = "block";
 }
   </script>
   <div class="modal" id="profileModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:1000;">
