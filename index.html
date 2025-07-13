@@ -88,7 +88,7 @@
   </style>
 </head>
 <body>
-   <div style="display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin-bottom:10px;">
+   <div id="buttonContainer" style="display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin-bottom:10px;">
     <button onclick="prevProfile()">⬅️ Prev</button>
     <button onclick="goToFirstProfile()">🔁 First</button>
     <button onclick="preloadSheets()">🔄 Refresh</button>
@@ -100,7 +100,7 @@
     <div><strong>Location:</strong> <span id="location">-</span></div>
     <div><strong>Container ID:</strong> <span id="container">-</span></div>
   </div>
-  <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;">
+  <div id="buttonContainer" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;">
     <button onclick="showModal('profileModal')">📄 Show Accounts</button>
     <button onclick="showModal('postsModal')">📝 Show Posts</button>
     <button onclick="pickRandom('Caption'); openThreads()">🖊 Pick Caption</button>
