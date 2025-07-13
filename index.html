@@ -129,8 +129,8 @@
   <div id="toast"></div>
   <script>
     const sheetUrl = 'https://script.google.com/macros/s/AKfycbxl9YgraQ_0ZHX90hsHf3L9U8QHDOVRtfegquHj-yLbbmeVdyvur_dToRDrsm9ThF7sMw/exec';
-let profiles = [], currentProfile = 0;
-let sheetCache = {}, pickedPostIndexes = {};
+    let profiles = [], currentProfile = 0;
+    let sheetCache = {}, pickedPostIndexes = {};
 
 async function fetchSheet(sheetName) {
   if (sheetCache[sheetName]) return sheetCache[sheetName];
@@ -146,7 +146,7 @@ async function preloadSheets() {
     showToast("Refreshing data...");
     sheetCache = {}; // clear old data
 
-    const previousIndex = currentProfile; // Save current index
+    const savedIndex = parseInt(localStorage.getItem('lastProfileIndex')) || 0;
 
     profiles = await fetchSheet('Accounts');
     sheetCache['Accounts'] = profiles;
@@ -156,19 +156,21 @@ async function preloadSheets() {
     sheetCache['Caption'] = await fetchSheet('Caption');
 
     showToast("Sheets refreshed!");
-    displayProfile(previousIndex || 0); // Restore previous profile
+    displayProfile(savedIndex);
   } catch (e) {
     showToast("Refresh failed");
   }
 }
 
 function displayProfile(index) {
-  if (!profiles.length) return;
+  if (profiles.length === 0) return;
   currentProfile = (index + profiles.length) % profiles.length;
+  localStorage.setItem('lastProfileIndex', currentProfile); // Save to localStorage
+
   const profile = profiles[currentProfile];
-  document.getElementById('username').textContent = profile.username || '-';
-  document.getElementById('location').textContent = profile.location || '-';
-  document.getElementById('container').textContent = profile.container || '-';
+  document.getElementById('username').textContent = profile.username;
+  document.getElementById('location').textContent = profile.location;
+  document.getElementById('container').textContent = profile.container;
 }
 function nextProfile() { displayProfile(currentProfile + 1); }
 function prevProfile() { displayProfile(currentProfile - 1); }
