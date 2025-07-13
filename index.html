@@ -88,6 +88,8 @@
   </style>
 </head>
 <body>
+   <button onclick="prevProfile()">⬅️ Prev</button>
+    <button onclick="nextProfile()">➡️ Next</button>
   <div style="background:white; border-radius:16px; box-shadow:0 2px 6px rgba(0,0,0,0.08); padding:16px; margin-bottom:16px;">
     <h2 style="margin:0 0 8px;">👤 Current Profile</h2>
     <div><strong>Username:</strong> <span id="username">-</span></div>
@@ -96,8 +98,6 @@
   </div>
 
   <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;">
-    <button onclick="prevProfile()">⬅️ Prev</button>
-    <button onclick="nextProfile()">➡️ Next</button>
     <button onclick="goToFirstProfile()">🔁 First</button>
     <button onclick="preloadSheets()">🔄 Refresh</button>
   </div>
@@ -105,10 +105,11 @@
   <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;">
     <button onclick="showModal('profileModal')">📄 Show Accounts</button>
     <button onclick="showModal('postsModal')">📝 Show Posts</button>
-    <button onclick="pickRandom('Reply')">💬 Pick Reply</button>
-    <button onclick="pickRandom('Comments')">💭 Pick Comment</button>
     <button onclick="pickRandom('Caption')">🖊 Pick Caption</button>
     <button onclick="pickTodayPost()">📅 Pick Post</button>
+    <button onclick="pickRandom('Reply')">💬 Pick Reply</button>
+    <button onclick="pickRandom('Comments')">💭 Pick Comment</button>
+    
   </div>
 
   <div id="profileModal" class="modal">
