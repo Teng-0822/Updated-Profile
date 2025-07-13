@@ -203,14 +203,20 @@ async function loadPosts() {
 }
 
 function pickRandom(sheetName) {
-  showToast(`Picking from ${sheetName}...`);
+  showToast(`Copying from ${sheetName}...`);
   fetchSheet(sheetName).then(data => {
     const choice = data[Math.floor(Math.random() * data.length)];
-    const value = Object.values(choice)[0];
+    let value = Object.values(choice)[0];
+
+    // Replace (loc) with the current profile's location
+    const loc = profiles[currentProfile]?.Location || profiles[currentProfile]?.location || "";
+    value = value.replace(/\(loc\)/gi, loc);
+
     navigator.clipboard.writeText(value);
     showToast(`${sheetName} copied!`);
   }).catch(() => showToast(`Failed to load ${sheetName}`));
 }
+
 
 function resetPickedPosts() {
   pickedPostIndexes = {};
