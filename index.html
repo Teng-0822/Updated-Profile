@@ -6,36 +6,30 @@
   <style>
     html, body {
       margin: 0;
-      padding: 10px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-      background: #f3f6fa;
+      padding: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+      background: #f9fbfd;
       color: #333;
     }
     button {
       padding: 10px 14px;
-      margin: 5px;
+      font-size: 16px;
       border: none;
       border-radius: 12px;
-      background: linear-gradient(to bottom, #fff, #e1ecf4);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-      font-size: 16px;
+      background: linear-gradient(to bottom, #ffffff, #dbeaf5);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.12);
       cursor: pointer;
+      flex: 1 1 40%;
+      margin: 5px;
     }
     button:hover {
-      background: #d4e6f1;
-    }
-    .profile-display {
-      background: #fff;
-      border-radius: 12px;
-      padding: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin: 10px 0;
+      background: #cce0f2;
     }
     .modal {
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0,0,0,0.3);
       z-index: 1000;
       align-items: center;
       justify-content: center;
@@ -49,24 +43,22 @@
       width: 95%;
       position: relative;
     }
-    .modal-content button.close-btn {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: #ffdddd;
-    }
     table {
       width: 100%;
       border-collapse: collapse;
     }
-    th, td {
+    table th, table td {
       border: 1px solid #ccc;
       padding: 8px;
+      font-size: 14px;
+    }
+    table th {
+      background: #f0f4f8;
     }
     #toast {
       visibility: hidden;
       min-width: 200px;
-      background-color: #333;
+      background: #333;
       color: #fff;
       text-align: center;
       border-radius: 8px;
@@ -79,7 +71,7 @@
     }
     #toast.show {
       visibility: visible;
-      animation: fadein 0.5s, fadeout 0.5s 2s;
+      animation: fadein 0.3s, fadeout 0.5s 2s;
     }
     @keyframes fadein {
       from { bottom: 20px; opacity: 0; }
@@ -92,149 +84,177 @@
   </style>
 </head>
 <body>
-  <div class="profile-display">
+  <div style="background:white; border-radius:16px; box-shadow:0 2px 6px rgba(0,0,0,0.08); padding:16px; margin-bottom:16px;">
+    <h2 style="margin:0 0 8px;">👤 Current Profile</h2>
     <div><strong>Username:</strong> <span id="username">-</span></div>
     <div><strong>Location:</strong> <span id="location">-</span></div>
     <div><strong>Container ID:</strong> <span id="container">-</span></div>
   </div>
 
-  <div>
+  <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;">
     <button onclick="prevProfile()">⬅️ Prev</button>
     <button onclick="goToFirstProfile()">🔁 First</button>
     <button onclick="nextProfile()">➡️ Next</button>
+    <button onclick="preloadSheets()">🔄 Refresh</button>
   </div>
 
-  <div>
-    <button onclick="showModal('profileModal')">👁 Show Accounts</button>
-    <button onclick="showModal('postsModal')">📑 Show Posts</button>
+  <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;">
+    <button onclick="showModal('profileModal')">📄 Show Accounts</button>
+    <button onclick="showModal('postsModal')">📝 Show Posts</button>
     <button onclick="pickRandom('Reply')">💬 Pick Reply</button>
     <button onclick="pickRandom('Comments')">💭 Pick Comment</button>
     <button onclick="pickRandom('Caption')">🖊 Pick Caption</button>
-    <button onclick="pickTodayPost()">📝 Pick Post</button>
+    <button onclick="pickTodayPost()">📅 Pick Post</button>
   </div>
 
   <div id="profileModal" class="modal">
     <div class="modal-content">
-      <button class="close-btn" onclick="hideModal('profileModal')">❌</button>
-      <h3>Accounts Sheet</h3>
+      <button onclick="hideModal('profileModal')" style="position:absolute; top:10px; left:10px; background:#ffdddd; border:none; border-radius:6px; padding:4px 10px;">❌</button>
+      <h3 style="margin-top:0;">📄 Accounts Sheet</h3>
       <table id="profileTable"></table>
     </div>
   </div>
 
   <div id="postsModal" class="modal">
     <div class="modal-content">
-      <button class="close-btn" onclick="hideModal('postsModal')">❌</button>
-      <h3>Posts Sheet</h3>
+      <button onclick="hideModal('postsModal')" style="position:absolute; top:10px; left:10px; background:#ffdddd; border:none; border-radius:6px; padding:4px 10px;">❌</button>
+      <h3 style="margin-top:0;">📝 Posts Sheet</h3>
       <table id="postsTable"></table>
     </div>
   </div>
 
   <div id="toast"></div>
-
   <script>
     const sheetUrl = 'https://script.google.com/macros/s/AKfycbxl9YgraQ_0ZHX90hsHf3L9U8QHDOVRtfegquHj-yLbbmeVdyvur_dToRDrsm9ThF7sMw/exec';
-    let profiles = [], currentProfile = 0;
-    let sheetCache = {};
+let profiles = [], currentProfile = 0;
+let sheetCache = {}, pickedPostIndexes = {};
 
-    async function fetchSheet(sheetName) {
-      if (sheetCache[sheetName]) return sheetCache[sheetName];
-      const res = await fetch(`${sheetUrl}?sheet=${sheetName}`);
-      if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      sheetCache[sheetName] = data;
-      return data;
+async function fetchSheet(sheetName) {
+  if (sheetCache[sheetName]) return sheetCache[sheetName];
+  const res = await fetch(`${sheetUrl}?sheet=${sheetName}`);
+  if (!res.ok) throw new Error("Failed to fetch " + sheetName);
+  const data = await res.json();
+  sheetCache[sheetName] = data;
+  return data;
+}
+
+async function preloadSheets() {
+  try {
+    showToast("Refreshing data...");
+    sheetCache = {};
+    profiles = await fetchSheet('Accounts');
+    sheetCache['Accounts'] = profiles;
+    sheetCache['Posts'] = await fetchSheet('Posts');
+    sheetCache['Reply'] = await fetchSheet('Reply');
+    sheetCache['Comments'] = await fetchSheet('Comments');
+    sheetCache['Caption'] = await fetchSheet('Caption');
+    displayProfile(currentProfile = 0);
+    showToast("Data loaded!");
+  } catch (e) {
+    showToast("Error loading sheets");
+  }
+}
+
+function displayProfile(index) {
+  if (!profiles.length) return;
+  currentProfile = (index + profiles.length) % profiles.length;
+  const profile = profiles[currentProfile];
+  document.getElementById('username').textContent = profile.username || '-';
+  document.getElementById('location').textContent = profile.location || '-';
+  document.getElementById('container').textContent = profile.container || '-';
+}
+function nextProfile() { displayProfile(currentProfile + 1); }
+function prevProfile() { displayProfile(currentProfile - 1); }
+function goToFirstProfile() { displayProfile(0); }
+
+function showModal(id) {
+  if (id === 'profileModal') loadAccounts();
+  if (id === 'postsModal') loadPosts();
+  document.getElementById(id).style.display = 'flex';
+}
+function hideModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+async function loadAccounts() {
+  try {
+    const accounts = await fetchSheet('Accounts');
+    const table = document.getElementById("profileTable");
+    table.innerHTML = '<tr><th>Username</th><th>Location</th><th>Container ID</th></tr>' +
+      accounts.map(p => `<tr><td>${p.username}</td><td>${p.location}</td><td>${p.container}</td></tr>`).join('');
+  } catch (e) {
+    showToast("Failed to load accounts");
+  }
+}
+
+async function loadPosts() {
+  try {
+    const posts = await fetchSheet('Posts');
+    const table = document.getElementById("postsTable");
+    const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    table.innerHTML = '<tr>' + days.map(d => `<th>${d}</th>`).join('') + '</tr>' +
+      posts.map(row => `<tr>` + days.map(day => `<td>${row[day] || ''}</td>`).join('') + '</tr>').join('');
+  } catch (e) {
+    showToast("Failed to load posts");
+  }
+}
+
+function pickRandom(sheetName) {
+  showToast(`Picking from ${sheetName}...`);
+  fetchSheet(sheetName).then(data => {
+    const choice = data[Math.floor(Math.random() * data.length)];
+    const value = Object.values(choice)[0];
+    navigator.clipboard.writeText(value);
+    showToast(`${sheetName} copied!`);
+  }).catch(() => showToast(`Failed to load ${sheetName}`));
+}
+
+function resetPickedPosts() {
+  pickedPostIndexes = {};
+  showToast("Post pool reset!");
+}
+
+async function pickTodayPost() {
+  try {
+    showToast("Picking today's post...");
+    const posts = await fetchSheet('Posts');
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const today = days[new Date().getDay()];
+
+    const todayPosts = posts
+      .map((row, index) => ({ index, text: row[today] }))
+      .filter(p => p.text?.trim());
+
+    if (!pickedPostIndexes[today]) pickedPostIndexes[today] = [];
+    const unused = todayPosts.filter(p => !pickedPostIndexes[today].includes(p.index));
+
+    if (unused.length === 0) {
+      pickedPostIndexes[today] = [];
+      showToast("All posts used, restarting pool");
+      return pickTodayPost();
     }
 
-    async function preloadSheets() {
-      sheetCache['Accounts'] = await fetchSheet('Accounts');
-      sheetCache['Posts'] = await fetchSheet('Posts');
-      sheetCache['Reply'] = await fetchSheet('Reply');
-      sheetCache['Comments'] = await fetchSheet('Comments');
-      sheetCache['Caption'] = await fetchSheet('Caption');
-      profiles = sheetCache['Accounts'];
-      displayProfile(0);
-    }
+    const selected = unused[Math.floor(Math.random() * unused.length)];
+    pickedPostIndexes[today].push(selected.index);
 
-    function displayProfile(index) {
-      if (profiles.length === 0) return;
-      currentProfile = (index + profiles.length) % profiles.length;
-      const profile = profiles[currentProfile];
-      document.getElementById('username').textContent = profile.username;
-      document.getElementById('location').textContent = profile.location;
-      document.getElementById('container').textContent = profile.container;
-    }
+    const location = profiles[currentProfile]?.location || profiles[currentProfile]?.Location || "";
+    const finalText = selected.text.replace(/\(loc\)/gi, location);
 
-    function nextProfile() { displayProfile(currentProfile + 1); }
-    function prevProfile() { displayProfile(currentProfile - 1); }
-    function goToFirstProfile() { displayProfile(0); }
+    await navigator.clipboard.writeText(finalText);
+    showToast("Post copied with location!");
+  } catch (e) {
+    showToast("Error picking post");
+  }
+}
 
-    function showModal(id) {
-      if (id === 'profileModal') loadAccounts();
-      if (id === 'postsModal') loadPosts();
-      document.getElementById(id).style.display = 'flex';
-    }
-    function hideModal(id) {
-      document.getElementById(id).style.display = 'none';
-    }
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.className = "show";
+  setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+}
 
-    async function loadAccounts() {
-      try {
-        const accounts = await fetchSheet('Accounts');
-        const table = document.getElementById("profileTable");
-        table.innerHTML = '<tr><th>Username</th><th>Location</th><th>Container ID</th></tr>' +
-          accounts.map(p => `<tr><td>${p.username}</td><td>${p.location}</td><td>${p.container}</td></tr>`).join('');
-      } catch (e) { showToast("Failed to load accounts"); }
-    }
-
-    async function loadPosts() {
-      try {
-        const posts = await fetchSheet('Posts');
-        const table = document.getElementById("postsTable");
-        const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-        table.innerHTML = '<tr>' + days.map(d => `<th>${d}</th>`).join('') + '</tr>' +
-          posts.map(row => `<tr>` + days.map(day => `<td>${row[day] || ''}</td>`).join('') + '</tr>').join('');
-      } catch (e) { showToast("Failed to load posts"); }
-    }
-
-    async function pickRandom(sheetName) {
-      try {
-        showToast(`Picking ${sheetName}...`);
-        const data = await fetchSheet(sheetName);
-        const choice = data[Math.floor(Math.random() * data.length)];
-        const value = Object.values(choice)[0];
-        await navigator.clipboard.writeText(value);
-        showToast(`${sheetName} copied!`);
-      } catch (e) {
-        showToast("Error picking " + sheetName);
-      }
-    }
-
-    async function pickTodayPost() {
-      try {
-        showToast("Picking post...");
-        const posts = await fetchSheet('Posts');
-        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-        const today = days[new Date().getDay()];
-        const available = posts.map(r => r[today]).filter(v => v);
-        if (available.length === 0) return showToast("No posts for today!");
-        const random = available[Math.floor(Math.random() * available.length)];
-        const loc = profiles[currentProfile]?.location || "";
-        const replaced = random.replace(/\(loc\)/gi, loc);
-        await navigator.clipboard.writeText(replaced);
-        showToast("Post copied with location!");
-      } catch (e) {
-        showToast("Error picking post");
-      }
-    }
-
-    function showToast(message) {
-      const toast = document.getElementById("toast");
-      toast.textContent = message;
-      toast.className = "show";
-      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
-    }
-
-    window.onload = preloadSheets;
+window.onload = preloadSheets;// JavaScript will be attached separately to keep HTML clean.
   </script>
 </body>
 </html>
