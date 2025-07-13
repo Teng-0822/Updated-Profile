@@ -45,23 +45,26 @@
   
   <button onclick="fetchSheetData('Accounts')">📋 Show Accounts</button>
   <button onclick="fetchSheetData('Posts')">📝 Show Posts</button>
-  <div id="profileModal" class="modal">
+  <button onclick="pickReply()">💬 Pick Reply</button>
+  <button onclick="pickComment()">💭 Pick Comment</button>
+
+<div id="profileModal" class="modal">
   <div class="modal-content">
-    <h3>Profiles from Google Sheet</h3>
+    <button onclick="closeModal('profileModal')" style="float: left; margin-bottom: 10px;">❌ Close</button>
+    <h3 style="text-align: center;">Profiles from Google Sheet</h3>
     <table id="profileTable"></table>
-    <button onclick="closeModal('profileModal')">❌ Close</button>
   </div>
 </div>
 
 <div id="postsModal" class="modal">
   <div class="modal-content">
-    <h3>Posts from Google Sheet</h3>
+    <button onclick="closeModal('postsModal')" style="float: left; margin-bottom: 10px;">❌ Close</button>
+    <h3 style="text-align: center;">Posts from Google Sheet</h3>
     <table id="postsTable"></table>
-    <button onclick="closeModal('postsModal')">❌ Close</button>
   </div>
 </div>
-  <div id="output"></div>
 
+  
   <script>
     const endpoint = "https://script.google.com/macros/s/AKfycbxYfnfQyubLOgLUgPYcLHA03jx0VD5h4DKeJ9HCLVYD3TErED7rN_BGP-veMs0qejtczA/exec"; // Replace with your actual Apps Script URL
     let accounts = [];
