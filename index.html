@@ -144,17 +144,21 @@ async function fetchSheet(sheetName) {
 async function preloadSheets() {
   try {
     showToast("Refreshing data...");
-    sheetCache = {};
+    sheetCache = {}; // clear old data
+
+    const previousIndex = currentProfile; // Save current index
+
     profiles = await fetchSheet('Accounts');
     sheetCache['Accounts'] = profiles;
     sheetCache['Posts'] = await fetchSheet('Posts');
     sheetCache['Reply'] = await fetchSheet('Reply');
     sheetCache['Comments'] = await fetchSheet('Comments');
     sheetCache['Caption'] = await fetchSheet('Caption');
-    displayProfile(currentProfile = 0);
-    showToast("Data loaded!");
+
+    showToast("Sheets refreshed!");
+    displayProfile(previousIndex || 0); // Restore previous profile
   } catch (e) {
-    showToast("Error loading sheets");
+    showToast("Refresh failed");
   }
 }
 
