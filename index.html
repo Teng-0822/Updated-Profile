@@ -143,9 +143,10 @@ async function fetchSheet(sheetName) {
 
 async function preloadSheets() {
   try {
+    setButtonsDisabled(true); // Lock buttons
     showToast("Refreshing data...");
-    sheetCache = {}; // clear old data
 
+    sheetCache = {}; // clear old data
     const savedIndex = parseInt(localStorage.getItem('lastProfileIndex')) || 0;
 
     profiles = await fetchSheet('Accounts');
@@ -159,8 +160,11 @@ async function preloadSheets() {
     displayProfile(savedIndex);
   } catch (e) {
     showToast("Refresh failed");
+  } finally {
+    setButtonsDisabled(false); // Unlock buttons
   }
 }
+
 
 function displayProfile(index) {
   if (profiles.length === 0) return;
@@ -283,7 +287,10 @@ function searchLocation() {
     function openThreads() {
    window.open(`https://threads.com/`, "_blank");
 }
-    
+    function setButtonsDisabled(disabled) {
+  const buttons = document.querySelectorAll('#buttonContainer button');
+  buttons.forEach(btn => btn.disabled = disabled);
+}
 window.onload = preloadSheets;// JavaScript will be attached separately to keep HTML clean.
   </script>
 </body>
