@@ -107,9 +107,14 @@
     <button onclick="pickTodayPost(); openThreads()">📅 Pick Post</button>
     <button onclick="pickRandom('Reply'); searchLocation()">💬 Pick Reply</button>
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
-    
   </div>
+    <div class="status-wrapper">
+      <button onclick="checkThreads()">Check Threads</button>
+      <div id="statusBox" title="Status"></div>
+    </div>
+    <div id="resultText"></div>
 
+  
   <div id="profileModal" class="modal">
     <div class="modal-content">
       <button onclick="hideModal('profileModal')" style="position:absolute; top:10px; left:10px; background:#ffdddd; border:none; border-radius:6px; padding:4px 10px;">❌</button>
@@ -291,6 +296,27 @@ function searchLocation() {
   const buttons = document.querySelectorAll('#buttonContainer button');
   buttons.forEach(btn => btn.disabled = disabled);
 }
+
+    function checkThreads() {
+    const box = document.getElementById("statusBox");
+    const result = document.getElementById("resultText");
+
+    // Reset to neutral
+    box.style.backgroundColor = "white";
+    result.textContent = "Checking...";
+
+    // Use a lightweight HEAD request with CORS bypass
+    fetch("https://www.threads.net", { mode: "no-cors" })
+      .then(() => {
+        box.style.backgroundColor = "green";
+        result.textContent = "✅ Threads is reachable.";
+      })
+      .catch(() => {
+        box.style.backgroundColor = "red";
+        result.textContent = "❌ Threads is not reachable (blocked or offline).";
+      });
+  }
+    
 window.onload = preloadSheets;// JavaScript will be attached separately to keep HTML clean.
   </script>
 </body>
