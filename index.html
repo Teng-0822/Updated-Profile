@@ -124,7 +124,7 @@
     <button onclick="pickTodayPost(); openThreads()">📅 Pick Post</button>
     <button onclick="pickRandom('Reply'); searchLocation()">💬 Pick Reply</button>
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
-    <button onclick="TunnelBear()">🐻</button>
+    <button onclick="TunnelBear(); runAutoTouchScript()">🐻</button>
   </div>
     <div class="status-wrapper">
       <button onclick="checkThreads()">Check Threads</button>
@@ -160,6 +160,10 @@
     function TunnelBear() {
     window.location.href = "shortcuts://run-shortcut?name=TunnelBear";
   }
+  function runAutoTouchScript() {
+      window.location.href = "autotouch://run?script=trial.lua";
+    }
+    
     
     const sheetUrl = 'https://script.google.com/macros/s/AKfycbxl9YgraQ_0ZHX90hsHf3L9U8QHDOVRtfegquHj-yLbbmeVdyvur_dToRDrsm9ThF7sMw/exec';
     let profiles = [], currentProfile = 0;
