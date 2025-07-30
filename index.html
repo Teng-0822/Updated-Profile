@@ -224,6 +224,17 @@ function displayProfile(index) {
   document.getElementById('username').textContent = profile.username;
   document.getElementById('location').textContent = profile.location;
   document.getElementById('container').textContent = profile.container;
+  document.getElementById('status').textContent = profile.status || "-";
+
+  // Set background color based on status
+  const status = (profile.status || "").toLowerCase();
+  if (status === "active") {
+    box.style.background = "#d4fcd4"; // light green
+  } else if (status === "suspended") {
+    box.style.background = "#ffd4d4"; // light red
+  } else {
+    box.style.background = "white"; // default
+  }
 }
 function nextProfile() { displayProfile(currentProfile + 1); }
 function prevProfile() { displayProfile(currentProfile - 1); }
