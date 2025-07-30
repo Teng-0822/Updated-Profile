@@ -162,7 +162,7 @@
     window.location.href = "shortcuts://run-shortcut?name=TunnelBear";
   }
   function runAutoTouch() {
-  fetch("http://192.168.1.10:8080/control/start_playing?path=/var/jb/var/mobile/Library/AutoTouch/Scripts/trial.lua")
+  fetch("http://192.168.1.10:8080/control/start_playing?path=/var/mobile/Library/AutoTouch/Scripts/trial.lua")
     .then(response => response.json())
     .then(data => {
       if (data.status === "success") {
