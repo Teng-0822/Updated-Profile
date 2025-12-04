@@ -253,6 +253,26 @@ function pickRandom(s){showToast('...');fetchSheet(s).then(d=>{const v=Object.va
 function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.className='show';setTimeout(()=>t.className='',3000)}
 function openThreads(){open('https://threads.net/','_blank')}
 
+  async function pickTodayPost() {
+  try {
+    showToast("Picking today's post...");
+    const posts = await fetchSheet('Posts');
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const today = days[new Date().getDay()];
+
+    const todayPosts = posts
+      .map((row, index) => ({ index, text: row[today] }))
+      .filter(p => p.text?.trim());
+
+    if (!pickedPostIndexes[today]) pickedPostIndexes[today] = [];
+    const unused = todayPosts.filter(p => !pickedPostIndexes[today].includes(p.index));
+
+    if (unused.length === 0) {
+      pickedPostIndexes[today] = [];
+      showToast("All posts used, restarting pool");
+      return pickTodayPost();
+    }
+
 // IP Rotation
 const ROTATE_URL='https://i.fxdx.in/actionlinks/do/changeip/wa1t2WWkTZ-OF0EEzv5SVg';
 const ipBar=document.getElementById('ipBar');
