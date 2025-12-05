@@ -135,17 +135,27 @@
 
 /* your existing styles + a tiny addition for the IP bar */
     #ipBar {
-      background: #1f2329;
-      border: 2px solid #ff4655;
-      border-radius: 8px;
-      padding: 5px;
-      margin: 12px 0;
-      text-align: center;
-      font-weight: bold;
-      transition: background 0.4s;
-    }
-    #ipBar.success { background: #2d4f2d; border-color: #0f0; }
-    #ipBar.error   { background: #4f2d2d; border-color: #f00; }
+          background: #2d2d2d;        /* default = gray (loading / unknown) */
+          border: 2px solid #666;
+          border-radius: 8px;
+          padding: 10px;
+          margin: 12px 0;
+          text-align: center;
+          font-weight: bold;
+          transition: all 0.4s ease;
+        }
+        #ipBar.loading {               /* ← NEW: gray loading state */
+          background: #2d2d2d;
+          border-color: #666;
+        }
+        #ipBar.success {
+          background: #2d4f2d;
+          border-color: #0f0;
+        }
+        #ipBar.error {
+          background: #4f2d2d;
+          border-color: #f00;
+        }
     #rotateIpBtn {
         padding: 5px 10px;
         margin-bottom: 1px;
@@ -410,19 +420,25 @@ function searchLocation() {
     }
 
     async function updateIPDisplay() {
-      const newIP = await fetchIP();
       const ipSpan = document.getElementById("currentIP");
       const ageSpan = document.getElementById("ipAge");
       const bar = document.getElementById("ipBar");
 
+      // Show loading state (gray)
+      bar.className = "loading";
+      ipSpan.textContent = "checking...";
+      ageSpan.textContent = "-";
+
+      const newIP = await fetchIP();
+
       if (newIP && newIP !== currentIP) {
-        // IP changed → success
+        // IP changed → success (green)
         currentIP = newIP;
         ipStartTime = Date.now();
         bar.className = "success";
       } else if (newIP && newIP === currentIP) {
-        // Same IP → keep current age
-        bar.className = ""; // neutral
+        // Same IP → neutral (back to gray)
+        bar.className = "loading";  // we treat "unchanged" as neutral gray
       } else {
         // Failed to fetch
         ipSpan.textContent = "error";
@@ -433,7 +449,7 @@ function searchLocation() {
 
       ipSpan.textContent = currentIP || "unknown";
 
-      // Update age every second
+      // Age counter
       const updateAge = () => {
         if (!ipStartTime) return;
         const seconds = Math.floor((Date.now() - ipStartTime) / 1000);
