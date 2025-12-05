@@ -19,7 +19,7 @@
     /* Buttons */
     button {
       padding: 10px 16px;
-      font-size: 16px;
+      font-size: 12px;
       font-weight: bold;
       border: 2px solid #ff4655;  /* Valorant red */
       border-radius: 4px;
@@ -133,24 +133,27 @@
       to { bottom: 20px; opacity: 0; }
     }
 
-    /* Status checker */
-    .status-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    #statusBox {
-      width: 22px;
-      height: 22px;
-      background-color: #0f1923;
+/* your existing styles + a tiny addition for the IP bar */
+    #ipBar {
+      background: #1f2329;
       border: 2px solid #ff4655;
-      border-radius: 4px;
-    }
-    #resultText {
-      margin-top: 10px;
+      border-radius: 8px;
+      padding: 5px;
+      margin: 12px 0;
+      text-align: center;
       font-weight: bold;
-      color: #ff4655;
+      transition: background 0.4s;
     }
+    #ipBar.success { background: #2d4f2d; border-color: #0f0; }
+    #ipBar.error   { background: #4f2d2d; border-color: #f00; }
+    #rotateIpBtn {
+        padding: 5px 10px;
+        margin-bottom: 1px;
+        background: #ff4655;
+        color: #0f1923;
+        font-weight: bold;
+    }
+    #rotateIpBtn:disabled { opacity: 0.6; }
   </style>
 </head>
 <body>
@@ -176,14 +179,17 @@
     <button onclick="pickTodayPost(); openThreads()">📅 Pick Post</button>
     <button onclick="pickRandom('Reply'); openThreads()">💬 Pick Reply</button>
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
-    
-  </div>
-    <div class="status-wrapper">
-      <button onclick="checkThreads()">Check Threads</button>
-      <div id="statusBox" title="Status"></div>
-    </div>
-    <div id="resultText"></div>
+</div>
 
+<!-- NEW IP ROTATION BAR -->
+  <div id="ipBar">
+    <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
+    
+    Current IP: |<span id="currentIP">fetching...</span>
+    
+    | Age: <span id="ipAge">0s</span>
+  </div>
+    
   
   <div id="profileModal" class="modal">
     <div class="modal-content">
@@ -387,28 +393,94 @@ function searchLocation() {
   const buttons = document.querySelectorAll('#buttonContainer button');
   buttons.forEach(btn => btn.disabled = disabled);
 }
-
-    function checkThreads() {
-    const box = document.getElementById("statusBox");
-    const result = document.getElementById("resultText");
-
-    // Reset to neutral
-    box.style.backgroundColor = "white";
-    result.textContent = "Checking...";
-
-    // Use a lightweight HEAD request with CORS bypass
-    fetch("https://www.threads.net", { mode: "no-cors" })
-      .then(() => {
-        box.style.backgroundColor = "green";
-        result.textContent = "✅ Threads is reachable.";
-      })
-      .catch(() => {
-        box.style.backgroundColor = "red";
-        result.textContent = "❌ Threads is not reachable (blocked or offline).";
-      });
-  }
     
-window.onload = preloadSheets;// JavaScript will be attached separately to keep HTML clean.
+// === NEW IP ROTATION CODE ===
+    let currentIP = null;
+    let ipStartTime = null;
+    const rotateUrl = "https://i.fxdx.in/actionlinks/do/changeip/wa1t2WWkTZ-OF0EEzv5SVg";
+
+    async function fetchIP() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        return data.ip;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function updateIPDisplay() {
+      const newIP = await fetchIP();
+      const ipSpan = document.getElementById("currentIP");
+      const ageSpan = document.getElementById("ipAge");
+      const bar = document.getElementById("ipBar");
+
+      if (newIP && newIP !== currentIP) {
+        // IP changed → success
+        currentIP = newIP;
+        ipStartTime = Date.now();
+        bar.className = "success";
+      } else if (newIP && newIP === currentIP) {
+        // Same IP → keep current age
+        bar.className = ""; // neutral
+      } else {
+        // Failed to fetch
+        ipSpan.textContent = "error";
+        ageSpan.textContent = "-";
+        bar.className = "error";
+        return;
+      }
+
+      ipSpan.textContent = currentIP || "unknown";
+
+      // Update age every second
+      const updateAge = () => {
+        if (!ipStartTime) return;
+        const seconds = Math.floor((Date.now() - ipStartTime) / 1000);
+        let text = "";
+        if (seconds < 60) text = seconds + "s";
+        else if (seconds < 3600) text = Math.floor(seconds / 60) + "m";
+        else text = Math.floor(seconds / 3600) + "h";
+        ageSpan.textContent = text;
+      };
+      updateAge();
+      setInterval(updateAge, 1000);
+    }
+
+    async function rotateIP() {
+      const btn = document.getElementById("rotateIpBtn");
+      const bar = document.getElementById("ipBar");
+      btn.disabled = true;
+      showToast("Rotating IP...");
+
+      try {
+        await fetch(rotateUrl, { method: "GET", mode: "no-cors" }); // no-cors because it's a redirect link
+        // Give the proxy a moment to apply the new IP
+        await new Promise(r => setTimeout(r, 2500));
+        const oldIP = currentIP;
+        await updateIPDisplay();
+
+        if (currentIP && currentIP !== oldIP) {
+          bar.className = "success";
+          showToast("IP changed to " + currentIP);
+        } else {
+          bar.className = "error";
+          showToast("IP did NOT change");
+        }
+      } catch (e) {
+        bar.className = "error";
+        showToast("Rotate failed");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+// Auto-refresh IP on load and every 30 seconds (optional)
+    window.onload = () => {
+      preloadSheets();
+      updateIPDisplay();
+      setInterval(updateIPDisplay, 30000); // keep IP display fresh
+    };
   </script>
 </body>
 </html>
