@@ -347,7 +347,7 @@ function resetPickedPosts() {
 }
 
 //media attach shit
-function openThreadsMediaPicker() {
+async function openThreadsMediaPicker() {
   try {
     showToast("Picking today's post...");
     const posts = await fetchSheet('Posts');
