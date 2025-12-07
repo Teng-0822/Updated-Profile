@@ -348,14 +348,38 @@ function resetPickedPosts() {
 
 //media attach shit
 function openThreadsMediaPicker() {
-      // Step 1: Open composer (100% reliable)
-      window.location = "https://www.threads.net/intent/post";
+  try {
+    showToast("Picking today's post...");
+    const posts = await fetchSheet('Posts');
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const today = days[new Date().getDay()];
 
-      // Step 2: 800ms later, trigger media picker deep link (focuses on attach)
-      setTimeout(() => {
-        window.location = "barcelona://media_picker?source=post_composer";
-      }, 2000);
+    const todayPosts = posts
+      .map((row, index) => ({ index, text: row[today] }))
+      .filter(p => p.text?.trim());
+
+    if (!pickedPostIndexes[today]) pickedPostIndexes[today] = [];
+    const unused = todayPosts.filter(p => !pickedPostIndexes[today].includes(p.index));
+
+    if (unused.length === 0) {
+      pickedPostIndexes[today] = [];
+      showToast("All posts used, restarting pool");
+      return pickTodayPost();
     }
+
+    const selected = unused[Math.floor(Math.random() * unused.length)];
+    pickedPostIndexes[today].push(selected.index);
+
+    const location = profiles[currentProfile]?.location || profiles[currentProfile]?.Location || "";
+    const finalText = selected.text.replace(/\(loc\)/gi, location);
+
+    await navigator.clipboard.writeText(finalText);
+    showToast("Post copied with location!");
+    window.open("https://www.threads.net/intent/post");
+  } catch (e) {
+    showToast("Error picking post");
+  }
+}
 
     
 let lastPickedText = ""; //ito dagdag
