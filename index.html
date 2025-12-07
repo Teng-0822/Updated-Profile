@@ -187,7 +187,7 @@
     <button onclick="showModal('profileModal')">📄 Show Accounts</button>
     <button onclick="showModal('postsModal')">📝 Show Posts</button>
     <button onclick="pickRandom('Caption'); openThreadsPost()">🖊 Pick Caption</button>
-    <button onclick="pickTodayPost(); openThreadsPost()">📅 Pick Post</button>
+    <button onclick="pickTodayPost()">📅 Pick Post</button> <!--; openThreadsPost()-->
     <button onclick="pickRandom('Reply'); openThreads()">💬 Pick Reply</button>
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
 </div>
@@ -345,7 +345,7 @@ function resetPickedPosts() {
   pickedPostIndexes = {};
   showToast("Post pool reset!");
 }
-
+let lastPickedText = ""; //ito dagdag
 async function pickTodayPost() {
   try {
     showToast("Picking today's post...");
@@ -372,8 +372,12 @@ async function pickTodayPost() {
     const location = profiles[currentProfile]?.location || profiles[currentProfile]?.Location || "";
     const finalText = selected.text.replace(/\(loc\)/gi, location);
 
-    await navigator.clipboard.writeText(finalText);
-    showToast("Post copied with location!");
+    /*await navigator.clipboard.writeText(finalText);
+    showToast("Post copied with location!");*/
+    lastPickedText = finalText;
+    const encoded = encodeURIComponent(finalText);
+    window.open(`https://www.threads.net/intent/post?text=${encoded}`, "_blank");
+    showToast("Opening Threads…");
   } catch (e) {
     showToast("Error picking post");
   }
