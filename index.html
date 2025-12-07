@@ -348,15 +348,23 @@ function resetPickedPosts() {
 
 //media attach shit
 function openThreadsMediaPicker() {
-    // This single line works 95 % of the time on iPhone after the first manual confirmation
-      window.location = "barcelona://media_picker";
-      
-      // If nothing happens in 1.5 seconds → fall back to normal composer
-      setTimeout(function() {
-        if (document.hasFocus()) {
-          window.location = "https://www.threads.net/intent/post";
+    // Step 1: Open the normal composer first (this always works perfectly)
+      window.location = "https://www.threads.net/intent/post";
+
+      // Step 2: After 2 seconds (enough time for the page to load inside the app),
+      //         inject code that automatically taps the attach button
+      setTimeout(() => {
+        // This runs inside the Threads webview/app
+        const attachButton = document.querySelector('[aria-label="Attach media"], [data-testid="media-attachment-button"], button:has([aria-label="photo"]), button:has(svg)') 
+                     || document.querySelector('button[tabindex="0"]')?.parentElement;
+
+        if (attachButton) {
+          attachButton.click();  // This opens the photo picker instantly
+        } else {
+          // Fallback: trigger the internal deep link (works after you allowed it once)
+          window.location = "barcelona://media_picker";
         }
-      }, 1500);
+      }, 2000);
     }
 
     
