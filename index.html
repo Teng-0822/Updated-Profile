@@ -186,8 +186,8 @@
   <div id="buttonContainer" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;">
     <button onclick="showModal('profileModal')">📄 Show Accounts</button>
     <button onclick="showModal('postsModal')">📝 Show Posts</button>
-    <button onclick="pickRandom('Caption'); openThreadsPost()">🖊 Pick Caption</button>
-    <button onclick="pickTodayPost()">📅 Pick Post</button> <!--; openThreadsPost()-->
+    <button onclick="openThreadsMediaPicker()">🖊 Pick Image</button>
+    <button onclick="pickTodayPost()">📅 Pick Post</button> <!--; openThreadsPost()  pickRandom('Caption'); openThreadsPost()-->
     <button onclick="pickRandom('Reply'); openThreads()">💬 Pick Reply</button>
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
 </div>
@@ -345,6 +345,36 @@ function resetPickedPosts() {
   pickedPostIndexes = {};
   showToast("Post pool reset!");
 }
+
+//media attach shit
+function openThreadsMediaPicker() {
+      // 1. Try the real internal deep link that opens the media picker directly
+      const deepLink = "barcelona://media_picker?source=post_composer";
+
+      // 2. Create an invisible iframe to attempt the deep link
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = deepLink;
+      document.body.appendChild(iframe);
+
+      // 3. Also try window.location as backup
+      window.location = deepLink;
+
+      // 4. If nothing happens within 1 second → probably not on the Threads app
+      //    → fall back to the normal composer (user will have to tap the + icon themselves)
+      setTimeout(() => {
+        // Clean up the iframe
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+
+        // If we're still on the same page, the deep link failed
+        try {
+          const fallback = "https://www.threads.net/intent/post?text=";
+          window.location = fallback;
+        } catch (e) {}
+      }, 1200);
+    }
+
+    
 let lastPickedText = ""; //ito dagdag
 async function pickTodayPost() {
   try {
