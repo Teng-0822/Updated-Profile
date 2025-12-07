@@ -186,8 +186,8 @@
   <div id="buttonContainer" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;">
     <button onclick="showModal('profileModal')">📄 Show Accounts</button>
     <button onclick="showModal('postsModal')">📝 Show Posts</button>
-    <button onclick="pickRandom('Caption'); openThreads()">🖊 Pick Caption</button>
-    <button onclick="pickTodayPost(); openThreads()">📅 Pick Post</button>
+    <button onclick="pickRandom('Caption'); openThreadsPost()">🖊 Pick Caption</button>
+    <button onclick="pickTodayPost(); openThreadsPost()">📅 Pick Post</button>
     <button onclick="pickRandom('Reply'); openThreads()">💬 Pick Reply</button>
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
 </div>
@@ -400,6 +400,11 @@ function searchLocation() {
     function openThreads() {
    window.open(`https://threads.com/`, "_blank");
 }
+
+    function openThreadsPost() {
+   window.open("https://www.threads.net/intent/post");
+}
+    
     function setButtonsDisabled(disabled) {
   const buttons = document.querySelectorAll('#buttonContainer button');
   buttons.forEach(btn => btn.disabled = disabled);
