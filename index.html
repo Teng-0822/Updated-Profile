@@ -348,30 +348,40 @@ function resetPickedPosts() {
 
 //media attach shit
 function openThreadsMediaPicker() {
-      // 1. Try the real internal deep link that opens the media picker directly
-      const deepLink = "barcelona://media_picker?source=post_composer";
+      // Detect iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-      // 2. Create an invisible iframe to attempt the deep link
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = deepLink;
-      document.body.appendChild(iframe);
+      // Primary: Try direct deep link to media picker
+      let deepLink = "barcelona://media_picker?source=post_composer";
 
-      // 3. Also try window.location as backup
-      window.location = deepLink;
+      // iOS fallback: Try Universal Link style first (more reliable post-iOS 17)
+      if (isIOS) {
+        window.location.href = "https://www.threads.net/intent/post/media"; // Threads' web-to-app bridge
+        setTimeout(() => {
+          // If no app open after 1s, try custom scheme
+          document.body.appendChild(Object.assign(document.createElement("iframe"), { style: { display: "none" }, src: deepLink }));
+          window.location.href = deepLink;
+        }, 1000);
+      } else {
+        // Non-iOS: Direct attempt
+        document.body.appendChild(Object.assign(document.createElement("iframe"), { style: { display: "none" }, src: deepLink }));
+        window.location.href = deepLink;
+      }
 
-      // 4. If nothing happens within 1 second → probably not on the Threads app
-      //    → fall back to the normal composer (user will have to tap the + icon themselves)
+      // Final fallback after 2s: Normal composer (user taps attach manually)
       setTimeout(() => {
-        // Clean up the iframe
-        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+        if (document.hasFocus()) { // Still in browser? Fallback
+          const fallback = "https://www.threads.net/intent/post?text=Add your photo here!";
+          window.location.href = fallback;
+        }
+      }, 2000);
 
-        // If we're still on the same page, the deep link failed
-        try {
-          const fallback = "https://www.threads.net/intent/post?text=";
-          window.location = fallback;
-        } catch (e) {}
-      }, 1200);
+      // Show iOS instructions if needed
+      if (isIOS) {
+        setTimeout(() => {
+          document.getElementById('instructions').style.display = 'flex';
+        }, 1500);
+      }
     }
 
     
