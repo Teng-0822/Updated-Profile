@@ -165,6 +165,28 @@
         font-weight: bold;
     }
     #rotateIpBtn:disabled { opacity: 0.6; }
+
+    #ipSuccessBox {
+  background: #2d2d2d; /* default = same gray as ipBar loading */
+  border: 2px solid #666;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 12px 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.4s ease;
+  opacity: 0.6;
+}
+
+#ipSuccessBox.flash {
+  background: #228B22 !important;
+  border-color: #0f0 !important;
+  color: white;
+  opacity: 1;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+    
   </style>
 </head>
 <body>
@@ -192,14 +214,17 @@
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
 </div>
 
-<!-- NEW IP ROTATION BAR -->
-  <div id="ipBar">
-    <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
-    
-    Current IP: |<span id="currentIP">fetching...</span>
-    
-    | Age: <span id="ipAge">0s</span>
-  </div>
+<!-- NEW IP SUCCESS FLASH BOX (placed beside the existing ipBar) -->
+<div id="ipSuccessBox">IP Changed Successfully ✅</div>
+
+<!-- Existing IP Bar (unchanged structure) -->
+<div id="ipBar">
+  <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
+ 
+  Current IP: |<span id="currentIP">fetching...</span>
+ 
+  | Age: <span id="ipAge">0s</span>
+</div>
     
   
   <div id="profileModal" class="modal">
@@ -510,33 +535,42 @@ function searchLocation() {
       setInterval(updateAge, 1000);
     }
 
-    async function rotateIP() {
-      const btn = document.getElementById("rotateIpBtn");
-      const bar = document.getElementById("ipBar");
-      btn.disabled = true;
-      showToast("Rotating IP...");
+async function rotateIP() {
+  const btn = document.getElementById("rotateIpBtn");
+  const bar = document.getElementById("ipBar");
+  const successBox = document.getElementById("ipSuccessBox");
+  
+  // Reset success box
+  successBox.classList.remove("flash");
 
-      try {
-        await fetch(rotateUrl, { method: "GET", mode: "no-cors" }); // no-cors because it's a redirect link
-        // Give the proxy a moment to apply the new IP
-        await new Promise(r => setTimeout(r, 2500));
-        const oldIP = currentIP;
-        await updateIPDisplay();
-
-        if (currentIP && currentIP !== oldIP) {
-          bar.className = "success";
-          showToast("IP changed to " + currentIP);
-        } else {
-          bar.className = "error";
-          showToast("IP did NOT change");
-        }
-      } catch (e) {
-        bar.className = "error";
-        showToast("Rotate failed");
-      } finally {
-        btn.disabled = false;
-      }
+  btn.disabled = true;
+  showToast("Rotating IP...");
+  try {
+    await fetch(rotateUrl, { method: "GET", mode: "no-cors" });
+    await new Promise(r => setTimeout(r, 2500));
+    const oldIP = currentIP;
+    await updateIPDisplay();
+    if (currentIP && currentIP !== oldIP) {
+      bar.className = "success";
+      
+      // <<< NEW: Flash the success box green for 15 seconds >>>
+      successBox.classList.add("flash");
+      setTimeout(() => {
+        successBox.classList.remove("flash");
+      }, 15000);
+      
+      showToast("IP changed to " + currentIP);
+    } else {
+      bar.className = "error";
+      showToast("IP did NOT change");
     }
+  } catch (e) {
+    bar.className = "error";
+    showToast("Rotate failed");
+  } finally {
+    btn.disabled = false;
+  }
+}
 
 // Auto-refresh IP on load and every 30 seconds (optional)
     window.onload = () => {
