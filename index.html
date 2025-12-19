@@ -168,7 +168,7 @@
 /* Add this inside your <style> block */
 #ipStatusBox {
   width: 60px;
-  height: 40px;
+  height: 50px;
   background: transparent;
   border: 2px solid #666;
   border-radius: 8px;
@@ -216,15 +216,19 @@
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
 </div>
 
-<!-- NEW IP ROTATION BAR -->
-<div id="ipBar">
-  <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
-      Current IP: |<span id="currentIP">fetching...</span> | Age: <span id="ipAge">0s</span>
-    </div>
-    <div id="ipStatusBox"></div> <!-- NEW EMPTY BOX -->
+<!-- IP ROTATION BAR + SEPARATE STATUS BOX -->
+<div style="display: flex; align-items: center; gap: 12px; justify-content: center; margin: 12px 0;">
+  <!-- Main IP Bar -->
+  <div id="ipBar">
+    <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
+   
+    Current IP: |<span id="currentIP">fetching...</span>
+   
+    | Age: <span id="ipAge">0s</span>
   </div>
+
+  <!-- Empty Status Box - OUTSIDE and to the RIGHT -->
+  <div id="ipStatusBox"></div>
 </div>
     
   
@@ -554,20 +558,28 @@ function searchLocation() {
 if (currentIP && currentIP !== oldIP) {
   bar.className = "success";
   
-  // Force green on status box for 15 seconds
+  // Turn the separate status box green for 15 seconds
   const statusBox = document.getElementById("ipStatusBox");
   statusBox.style.background = "#228B22";
   statusBox.style.borderColor = "#0f0";
 
   showToast("IP changed to " + currentIP);
 
-  // After 15 seconds, let it follow the bar's class again
+  // After 15 seconds, revert to neutral (match loading state)
   setTimeout(() => {
-    statusBox.style.background = "";
-    statusBox.style.borderColor = "";
+    statusBox.style.background = "#2d2d2d";
+    statusBox.style.borderColor = "#666";
   }, 15000);
 } else {
   bar.className = "error";
+  // Optional: flash the status box red briefly on failure
+  const statusBox = document.getElementById("ipStatusBox");
+  statusBox.style.background = "#4f2d2d";
+  statusBox.style.borderColor = "#f00";
+  setTimeout(() => {
+    statusBox.style.background = "#2d2d2d";
+    statusBox.style.borderColor = "#666";
+  }, 3000);
   showToast("IP did NOT change");
 }
       } catch (e) {
