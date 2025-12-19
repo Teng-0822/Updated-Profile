@@ -165,6 +165,30 @@
         font-weight: bold;
     }
     #rotateIpBtn:disabled { opacity: 0.6; }
+/* Add this inside your <style> block */
+#ipStatusBox {
+  width: 60px;
+  height: 40px;
+  background: transparent;
+  border: 2px solid #666;
+  border-radius: 8px;
+  transition: background 0.4s ease, border-color 0.4s ease;
+}
+
+/* Optional: make it match the bar's state */
+#ipBar.success #ipStatusBox {
+  background: #228B22;
+  border-color: #0f0;
+}
+#ipBar.error #ipStatusBox {
+  background: #4f2d2d;
+  border-color: #f00;
+}
+#ipBar.loading #ipStatusBox {
+  background: #2d2d2d;
+  border-color: #666;
+}
+    
   </style>
 </head>
 <body>
@@ -193,13 +217,15 @@
 </div>
 
 <!-- NEW IP ROTATION BAR -->
-  <div id="ipBar">
-    <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
-    
-    Current IP: |<span id="currentIP">fetching...</span>
-    
-    | Age: <span id="ipAge">0s</span>
+<div id="ipBar">
+  <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
+      Current IP: |<span id="currentIP">fetching...</span> | Age: <span id="ipAge">0s</span>
+    </div>
+    <div id="ipStatusBox"></div> <!-- NEW EMPTY BOX -->
   </div>
+</div>
     
   
   <div id="profileModal" class="modal">
@@ -523,13 +549,27 @@ function searchLocation() {
         const oldIP = currentIP;
         await updateIPDisplay();
 
-        if (currentIP && currentIP !== oldIP) {
-          bar.className = "success";
-          showToast("IP changed to " + currentIP);
-        } else {
-          bar.className = "error";
-          showToast("IP did NOT change");
-        }
+// Inside the rotateIP() function, replace the success block with this updated version:
+
+if (currentIP && currentIP !== oldIP) {
+  bar.className = "success";
+  
+  // Force green on status box for 15 seconds
+  const statusBox = document.getElementById("ipStatusBox");
+  statusBox.style.background = "#228B22";
+  statusBox.style.borderColor = "#0f0";
+
+  showToast("IP changed to " + currentIP);
+
+  // After 15 seconds, let it follow the bar's class again
+  setTimeout(() => {
+    statusBox.style.background = "";
+    statusBox.style.borderColor = "";
+  }, 15000);
+} else {
+  bar.className = "error";
+  showToast("IP did NOT change");
+}
       } catch (e) {
         bar.className = "error";
         showToast("Rotate failed");
