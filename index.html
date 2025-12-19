@@ -165,30 +165,6 @@
         font-weight: bold;
     }
     #rotateIpBtn:disabled { opacity: 0.6; }
-/* Add this inside your <style> block */
-#ipStatusBox {
-  width: 60px;
-  height: 50px;
-  background: transparent;
-  border: 2px solid #666;
-  border-radius: 8px;
-  transition: background 0.4s ease, border-color 0.4s ease;
-}
-
-/* Optional: make it match the bar's state */
-#ipBar.success #ipStatusBox {
-  background: #228B22;
-  border-color: #0f0;
-}
-#ipBar.error #ipStatusBox {
-  background: #4f2d2d;
-  border-color: #f00;
-}
-#ipBar.loading #ipStatusBox {
-  background: #2d2d2d;
-  border-color: #666;
-}
-    
   </style>
 </head>
 <body>
@@ -216,20 +192,14 @@
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
 </div>
 
-<!-- IP ROTATION BAR + SEPARATE STATUS BOX -->
-<div style="display: flex; align-items: center; gap: 12px; justify-content: center; margin: 12px 0;">
-  <!-- Main IP Bar -->
-  <div id="ipBar">
+<!-- NEW IP ROTATION BAR -->
+ <div>
     <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
-   
-    Current IP: |<span id="currentIP">fetching...</span>
-   
-    | Age: <span id="ipAge">0s</span>
+        Current IP: |<span id="currentIP">fetching...</span>
+        | Age: <span id="ipAge">0s</span>
+  <div id="ipBar">
   </div>
-
-  <!-- Empty Status Box - OUTSIDE and to the RIGHT -->
-  <div id="ipStatusBox"></div>
-</div>
+      </div> 
     
   
   <div id="profileModal" class="modal">
@@ -553,35 +523,13 @@ function searchLocation() {
         const oldIP = currentIP;
         await updateIPDisplay();
 
-// Inside the rotateIP() function, replace the success block with this updated version:
-
-if (currentIP && currentIP !== oldIP) {
-  bar.className = "success";
-  
-  // Turn the separate status box green for 15 seconds
-  const statusBox = document.getElementById("ipStatusBox");
-  statusBox.style.background = "#228B22";
-  statusBox.style.borderColor = "#0f0";
-
-  showToast("IP changed to " + currentIP);
-
-  // After 15 seconds, revert to neutral (match loading state)
-  setTimeout(() => {
-    statusBox.style.background = "#2d2d2d";
-    statusBox.style.borderColor = "#666";
-  }, 15000);
-} else {
-  bar.className = "error";
-  // Optional: flash the status box red briefly on failure
-  const statusBox = document.getElementById("ipStatusBox");
-  statusBox.style.background = "#4f2d2d";
-  statusBox.style.borderColor = "#f00";
-  setTimeout(() => {
-    statusBox.style.background = "#2d2d2d";
-    statusBox.style.borderColor = "#666";
-  }, 3000);
-  showToast("IP did NOT change");
-}
+        if (currentIP && currentIP !== oldIP) {
+          bar.className = "success";
+          showToast("IP changed to " + currentIP);
+        } else {
+          bar.className = "error";
+          showToast("IP did NOT change");
+        }
       } catch (e) {
         bar.className = "error";
         showToast("Rotate failed");
