@@ -141,7 +141,7 @@
           padding: 10px;
           margin: 12px 0;
           text-align: center;
-          font-size: 8px;
+          font-size: 12px;
           font-weight: bold;
           transition: all 0.4s ease;
         }
@@ -165,21 +165,6 @@
         font-weight: bold;
     }
     #rotateIpBtn:disabled { opacity: 0.6; }
-
-#ipChangeIndicator {
-  width: 50px;
-  height: 50px;
-  background: #2d2d2d; /* explicit default gray */
-  border: 2px solid #666;
-  border-radius: 8px;
-  transition: all 0.4s ease;
-}
-
-#ipChangeIndicator.success {
-  background: #228B22 !important;
-  border-color: #0f0 !important;
-  box-shadow: 0 0 25px rgba(0, 255, 0, 0.8) !important;
-}
   </style>
 </head>
 <body>
@@ -207,19 +192,14 @@
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
 </div>
 
-<!-- IP Status Indicator + IP Bar (side by side) -->
-<div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0;">
-  <!-- Original IP Bar (unchanged content) -->
+<!-- NEW IP ROTATION BAR -->
   <div id="ipBar">
     <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
-   
+    
     Current IP: |<span id="currentIP">fetching...</span>
-   
+    
     | Age: <span id="ipAge">0s</span>
   </div>
-  <!-- NEW: Empty color-changing box on the left -->
-  <div id="ipChangeIndicator"></div>
-</div>
     
   
   <div id="profileModal" class="modal">
@@ -530,45 +510,33 @@ function searchLocation() {
       setInterval(updateAge, 1000);
     }
 
-async function rotateIP() {
-  const btn = document.getElementById("rotateIpBtn");
-  const bar = document.getElementById("ipBar");
-  const indicator = document.getElementById("ipChangeIndicator");
-  
-  // <<< STRONGER RESET >>>
-  indicator.classList.remove("success");
-  indicator.style.background = "#2d2d2d";
-  indicator.style.borderColor = "#666";
-  indicator.style.boxShadow = "none";
+    async function rotateIP() {
+      const btn = document.getElementById("rotateIpBtn");
+      const bar = document.getElementById("ipBar");
+      btn.disabled = true;
+      showToast("Rotating IP...");
 
-  btn.disabled = true;
-  showToast("Rotating IP...");
-  try {
-    await fetch(rotateUrl, { method: "GET", mode: "no-cors" });
-    await new Promise(r => setTimeout(r, 2500));
-    const oldIP = currentIP;
-    await updateIPDisplay();
-    if (currentIP && currentIP !== oldIP) {
-      bar.className = "success";
-      
-      // Flash green for 15 seconds
-      indicator.classList.add("success");
-      setTimeout(() => {
-        indicator.classList.remove("success");
-      }, 15000);
-      
-      showToast("IP changed to " + currentIP);
-    } else {
-      bar.className = "error";
-      showToast("IP did NOT change");
+      try {
+        await fetch(rotateUrl, { method: "GET", mode: "no-cors" }); // no-cors because it's a redirect link
+        // Give the proxy a moment to apply the new IP
+        await new Promise(r => setTimeout(r, 2500));
+        const oldIP = currentIP;
+        await updateIPDisplay();
+
+        if (currentIP && currentIP !== oldIP) {
+          bar.className = "success";
+          showToast("IP changed to " + currentIP);
+        } else {
+          bar.className = "error";
+          showToast("IP did NOT change");
+        }
+      } catch (e) {
+        bar.className = "error";
+        showToast("Rotate failed");
+      } finally {
+        btn.disabled = false;
+      }
     }
-  } catch (e) {
-    bar.className = "error";
-    showToast("Rotate failed");
-  } finally {
-    btn.disabled = false;
-  }
-}
 
 // Auto-refresh IP on load and every 30 seconds (optional)
     window.onload = () => {
