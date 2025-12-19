@@ -209,9 +209,6 @@
 
 <!-- IP Status Indicator + IP Bar (side by side) -->
 <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0;">
-  <!-- NEW: Empty color-changing box on the left -->
-  <div id="ipChangeIndicator"></div>
-  
   <!-- Original IP Bar (unchanged content) -->
   <div id="ipBar">
     <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
@@ -220,6 +217,8 @@
    
     | Age: <span id="ipAge">0s</span>
   </div>
+  <!-- NEW: Empty color-changing box on the left -->
+  <div id="ipChangeIndicator"></div>
 </div>
     
   
