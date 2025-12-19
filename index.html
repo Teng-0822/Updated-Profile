@@ -141,7 +141,7 @@
           padding: 10px;
           margin: 12px 0;
           text-align: center;
-          font-size: 12px;
+          font-size: 8px;
           font-weight: bold;
           transition: all 0.4s ease;
         }
@@ -166,10 +166,10 @@
     }
     #rotateIpBtn:disabled { opacity: 0.6; }
 
-    #ipChangeIndicator {
+#ipChangeIndicator {
   width: 50px;
   height: 50px;
-  background: #2d2d2d; /* default gray (same as loading) */
+  background: #2d2d2d; /* explicit default gray */
   border: 2px solid #666;
   border-radius: 8px;
   transition: all 0.4s ease;
@@ -178,7 +178,7 @@
 #ipChangeIndicator.success {
   background: #228B22 !important;
   border-color: #0f0 !important;
-  box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+  box-shadow: 0 0 25px rgba(0, 255, 0, 0.8) !important;
 }
   </style>
 </head>
@@ -533,10 +533,13 @@ function searchLocation() {
 async function rotateIP() {
   const btn = document.getElementById("rotateIpBtn");
   const bar = document.getElementById("ipBar");
-  const indicator = document.getElementById("ipChangeIndicator"); // ← NEW
+  const indicator = document.getElementById("ipChangeIndicator");
   
-  // Reset indicator
+  // <<< STRONGER RESET >>>
   indicator.classList.remove("success");
+  indicator.style.background = "#2d2d2d";
+  indicator.style.borderColor = "#666";
+  indicator.style.boxShadow = "none";
 
   btn.disabled = true;
   showToast("Rotating IP...");
@@ -548,7 +551,7 @@ async function rotateIP() {
     if (currentIP && currentIP !== oldIP) {
       bar.className = "success";
       
-      // <<< NEW: Flash green for 15 seconds >>>
+      // Flash green for 15 seconds
       indicator.classList.add("success");
       setTimeout(() => {
         indicator.classList.remove("success");
