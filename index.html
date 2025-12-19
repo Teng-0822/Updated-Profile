@@ -166,27 +166,20 @@
     }
     #rotateIpBtn:disabled { opacity: 0.6; }
 
-    #ipSuccessBox {
-  background: #2d2d2d; /* default = same gray as ipBar loading */
+    #ipChangeIndicator {
+  width: 50px;
+  height: 50px;
+  background: #2d2d2d; /* default gray (same as loading) */
   border: 2px solid #666;
   border-radius: 8px;
-  padding: 10px;
-  margin: 12px 0;
-  text-align: center;
-  font-size: 12px;
-  font-weight: bold;
   transition: all 0.4s ease;
-  opacity: 0.6;
 }
 
-#ipSuccessBox.flash {
+#ipChangeIndicator.success {
   background: #228B22 !important;
   border-color: #0f0 !important;
-  color: white;
-  opacity: 1;
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
 }
-    
   </style>
 </head>
 <body>
@@ -214,16 +207,19 @@
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
 </div>
 
-<!-- NEW IP SUCCESS FLASH BOX (placed beside the existing ipBar) -->
-<div id="ipSuccessBox">IP Changed Successfully ✅</div>
-
-<!-- Existing IP Bar (unchanged structure) -->
-<div id="ipBar">
-  <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
- 
-  Current IP: |<span id="currentIP">fetching...</span>
- 
-  | Age: <span id="ipAge">0s</span>
+<!-- IP Status Indicator + IP Bar (side by side) -->
+<div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0;">
+  <!-- NEW: Empty color-changing box on the left -->
+  <div id="ipChangeIndicator"></div>
+  
+  <!-- Original IP Bar (unchanged content) -->
+  <div id="ipBar">
+    <button id="rotateIpBtn" onclick="rotateIP()">🔄</button>
+   
+    Current IP: |<span id="currentIP">fetching...</span>
+   
+    | Age: <span id="ipAge">0s</span>
+  </div>
 </div>
     
   
@@ -538,10 +534,10 @@ function searchLocation() {
 async function rotateIP() {
   const btn = document.getElementById("rotateIpBtn");
   const bar = document.getElementById("ipBar");
-  const successBox = document.getElementById("ipSuccessBox");
+  const indicator = document.getElementById("ipChangeIndicator"); // ← NEW
   
-  // Reset success box
-  successBox.classList.remove("flash");
+  // Reset indicator
+  indicator.classList.remove("success");
 
   btn.disabled = true;
   showToast("Rotating IP...");
@@ -553,10 +549,10 @@ async function rotateIP() {
     if (currentIP && currentIP !== oldIP) {
       bar.className = "success";
       
-      // <<< NEW: Flash the success box green for 15 seconds >>>
-      successBox.classList.add("flash");
+      // <<< NEW: Flash green for 15 seconds >>>
+      indicator.classList.add("success");
       setTimeout(() => {
-        successBox.classList.remove("flash");
+        indicator.classList.remove("success");
       }, 15000);
       
       showToast("IP changed to " + currentIP);
