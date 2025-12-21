@@ -347,37 +347,61 @@ function resetPickedPosts() {
 }
 
 //media attach shit
+// Global variable to track used caption indexes (persists across calls)
+let usedCaptionIndexes = [];
+
 async function openThreadsMediaPicker() {
+  const sheetName = 'Caption';
+
   try {
-    showToast("Picking today's post...");
-    const posts = await fetchSheet('Posts');
-    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const today = days[new Date().getDay()];
+    showToast(`Picking from ${sheetName}...`);
 
-    const todayPosts = posts
-      .map((row, index) => ({ index, text: row[today] }))
-      .filter(p => p.text?.trim());
+    const data = await fetchSheet(sheetName);
 
-    if (!pickedPostIndexes[today]) pickedPostIndexes[today] = [];
-    const unused = todayPosts.filter(p => !pickedPostIndexes[today].includes(p.index));
-
-    if (unused.length === 0) {
-      pickedPostIndexes[today] = [];
-      showToast("All posts used, restarting pool");
-      return pickTodayPost();
+    if (!data || data.length === 0) {
+      showToast(`No captions found in ${sheetName}`);
+      return;
     }
 
+    // If we've used all captions, reset the pool
+    if (usedCaptionIndexes.length >= data.length) {
+      usedCaptionIndexes = [];
+      showToast("All captions used, restarting pool");
+    }
+
+    // Find unused captions
+    const unused = data
+      .map((row, index) => ({ index, row }))
+      .filter(item => !usedCaptionIndexes.includes(item.index));
+
+    // This should never happen due to the reset above, but safety check
+    if (unused.length === 0) {
+      usedCaptionIndexes = [];
+      unused = data.map((row, index) => ({ index, row }));
+    }
+
+    // Pick a random unused caption
     const selected = unused[Math.floor(Math.random() * unused.length)];
-    pickedPostIndexes[today].push(selected.index);
+    usedCaptionIndexes.push(selected.index);
 
-    const location = profiles[currentProfile]?.location || profiles[currentProfile]?.Location || "";
-    const finalText = selected.text.replace(/\(loc\)/gi, location);
+    // Get the caption text (assuming it's the first/only meaningful column)
+    let value = Object.values(selected.row)[0];
 
-    await navigator.clipboard.writeText(finalText);
-    showToast("Post copied with location!");
+    // Replace (loc) with current profile location
+    const location = profiles[currentProfile]?.Location || profiles[currentProfile]?.location || "";
+    value = value.replace(/\(loc\)/gi, location);
+
+    // Copy to clipboard
+    await navigator.clipboard.writeText(value);
+
+    showToast("Caption copied!");
+
+    // Open Threads compose window
     window.open("https://www.threads.net/intent/post");
+
   } catch (e) {
-    showToast("Error picking post");
+    showToast(`Failed to load ${sheetName}`);
+    console.error(e);
   }
 }
 
