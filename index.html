@@ -185,7 +185,7 @@
 
   <div id="buttonContainer" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;">
     <button onclick="showModal('profileModal')">📄 Show Accounts</button>
-    <button onclick="showModal('postsModal')">📝 Show Posts</button>
+    <button onclick="linkPost()">Link Post</button> <!-- showModal('postsModal') 📝 Show Posts-->
     <button onclick="openThreadsMediaPicker()">🖊 Pick Image</button>
     <button onclick="pickTodayPost()">📅 Pick Post</button> <!--; openThreadsPost()  pickRandom('Caption'); openThreadsPost()-->
     <button onclick="pickRandom('Reply'); openThreads()">💬 Pick Reply</button>
@@ -226,6 +226,19 @@
     function GotoFirst() {
     window.location.href = "shortcuts://run-shortcut?name=first";
   }
+
+    function linkPost() {
+  try {
+    showToast("Opening the link post...");
+    // Clean version of the URL (without tracking parameters)
+    window.open("https://www.threads.net/@piperallyglow/post/DSgboU8DEia");
+    showToast("Link post opened!");
+  } catch (e) {
+    showToast("Error opening link post");
+    console.error(e);
+  }
+}
+    
       
     const sheetUrl = 'https://script.google.com/macros/s/AKfycbxl9YgraQ_0ZHX90hsHf3L9U8QHDOVRtfegquHj-yLbbmeVdyvur_dToRDrsm9ThF7sMw/exec';
     let profiles = [], currentProfile = 0;
