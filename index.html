@@ -503,49 +503,61 @@ function searchLocation() {
       }
     }
 
-    async function updateIPDisplay() {
-      const ipSpan = document.getElementById("currentIP");
-      const ageSpan = document.getElementById("ipAge");
-      const bar = document.getElementById("ipBar");
+async function updateIPDisplay() {
+  const ipSpan = document.getElementById("currentIP");
+  const ageSpan = document.getElementById("ipAge");
+  const bar = document.getElementById("ipBar");
+  
+  // Start with loading state
+  bar.className = "loading";
+  ipSpan.textContent = "checking...";
+  ageSpan.textContent = "-";
 
-      // Show loading state (gray)
-      bar.className = "loading";
-      ipSpan.textContent = "checking...";
+  const newIP = await fetchIP();
+  
+  if (!newIP) {
+    // Failed to fetch IP
+    ipSpan.textContent = "error";
+    ageSpan.textContent = "-";
+    bar.className = "error";
+    currentIP = null;
+    ipStartTime = null;
+    return;
+  }
+
+  const ipChanged = (newIP !== currentIP);
+  
+  if (ipChanged || currentIP === null) {
+    // IP is new (either changed or first time)
+    currentIP = newIP;
+    ipStartTime = Date.now();
+    bar.className = "success";  // ← Turn green on fresh IP
+  } else {
+    // Same IP as before → neutral gray
+    bar.className = "loading";
+  }
+
+  ipSpan.textContent = currentIP;
+
+  // Age updater (clears old interval if exists)
+  if (window.ipAgeInterval) clearInterval(window.ipAgeInterval);
+  
+  const updateAge = () => {
+    if (!ipStartTime) {
       ageSpan.textContent = "-";
-
-      const newIP = await fetchIP();
-
-      if (newIP && newIP !== currentIP) {
-        // IP changed → success (green)
-        currentIP = newIP;
-        ipStartTime = Date.now();
-        bar.className = "success";
-      } else if (newIP && newIP === currentIP) {
-        // Same IP → neutral (back to gray)
-        bar.className = "loading";  // we treat "unchanged" as neutral gray
-      } else {
-        // Failed to fetch
-        ipSpan.textContent = "error";
-        ageSpan.textContent = "-";
-        bar.className = "error";
-        return;
-      }
-
-      ipSpan.textContent = currentIP || "unknown";
-
-      // Age counter
-      const updateAge = () => {
-        if (!ipStartTime) return;
-        const seconds = Math.floor((Date.now() - ipStartTime) / 1000);
-        let text = "";
-        if (seconds < 60) text = seconds + "s";
-        else if (seconds < 3600) text = Math.floor(seconds / 60) + "m";
-        else text = Math.floor(seconds / 3600) + "h";
-        ageSpan.textContent = text;
-      };
-      updateAge();
-      setInterval(updateAge, 1000);
+      return;
     }
+    const seconds = Math.floor((Date.now() - ipStartTime) / 1000);
+    let text = "";
+    if (seconds < 60) text = seconds + "s";
+    else if (seconds < 3600) text = Math.floor(seconds / 60) + "m";
+    else text = Math.floor(seconds / 3600) + "h";
+    ageSpan.textContent = text;
+  };
+  
+  updateAge();
+  window.ipAgeInterval = setInterval(updateAge, 1000);
+}
 
     async function rotateIP() {
       const btn = document.getElementById("rotateIpBtn");
