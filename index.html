@@ -134,36 +134,36 @@
     }
 
 /* your existing styles + a tiny addition for the IP bar */
-   #ipBar {
-  background: #2d2d2d;
-  border: 2px solid #666;
-  border-radius: 8px;
-  padding: 10px;
-  margin: 12px 0;
-  text-align: center;
-  font-size: 12px;
-  font-weight: bold;
-  color: white;
-  transition: all 0.4s ease;
-}
-
-#ipBar.loading {
-  background: #2d2d2d;
-  border-color: #666;
-  color: #aaa;
-}
-
-#ipBar.success {
-  background: #008000; /* darker green for better contrast */
-  border-color: #00c000;
-  color: white;
-}
-
-#ipBar.error {
-  background: #4f2d2d;
-  border-color: #f00;
-  color: #ffaaaa;
-}
+    #ipBar {
+          background: #2d2d2d;        /* default = gray (loading / unknown) */
+          border: 2px solid #666;
+          border-radius: 8px;
+          padding: 10px;
+          margin: 12px 0;
+          text-align: center;
+          font-size: 12px;
+          font-weight: bold;
+          transition: all 0.4s ease;
+        }
+        #ipBar.loading {               /* ← NEW: gray loading state */
+          background: #2d2d2d;
+          border-color: #666;
+        }
+        #ipBar.success {
+          background: green;
+          border-color: green;
+        }
+        #ipBar.error {
+          background: #4f2d2d;
+          border-color: #f00;
+        }
+    #rotateIpBtn {
+        padding: 5px 10px;
+        margin-bottom: 1px;
+        background: #ff4655;
+        color: #0f1923;
+        font-weight: bold;
+    }
     #rotateIpBtn:disabled { opacity: 0.6; }
   </style>
 </head>
@@ -192,15 +192,14 @@
     <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
 </div>
 
-<div style="font-size: 10px;">
-  <button id="rotateIpBtn" onclick="rotateIP(50)">🔄</button>
-  Current IP: |<span id="currentIP">fetching...</span>|
-  Age: <span id="ipAge">0s</span>
-  
-  <div id="ipBar" class="loading">
-    IP Status: Checking...
+<!-- NEW IP ROTATION BAR -->
+ <div style="font-size: 10px;">
+    <button id="rotateIpBtn" onclick="rotateIP(50)">🔄</button>
+        Current IP: |<span id="currentIP">fetching...</span>
+        | Age: <span id="ipAge">0s</span>
+  <div id="ipBar">
   </div>
-</div>
+      </div> 
     
   
   <div id="profileModal" class="modal">
@@ -560,79 +559,62 @@ async function updateIPDisplay() {
   window.ipAgeInterval = setInterval(updateAge, 1000);
 }
 
-async function rotateIP(maxAttempts = 50) {
+ async function rotateIP(maxAttempts = 10) {
   const btn = document.getElementById("rotateIpBtn");
   const bar = document.getElementById("ipBar");
 
-  // Disable button and set initial rotating state
   btn.disabled = true;
-  bar.className = "loading";
-  bar.textContent = "Rotating IP... Please wait";
-
-  showToast("Starting IP rotation...");
-
   let attempts = 0;
+
+  // Get the initial IP if we don't have it yet
+  if (!currentIP) {
+    await updateIPDisplay();
+  }
   let oldIP = currentIP;
 
-  // Ensure we have the current IP before starting
-  if (!oldIP) {
-    await updateIPDisplay();
-    oldIP = currentIP;
-  }
-
-  // Show old IP in bar for reference
-  bar.textContent = `Rotating... Current: ${oldIP || 'unknown'}`;
+  showToast("Rotating IP...");
 
   while (attempts < maxAttempts) {
     attempts++;
-    showToast(`Rotating IP... (attempt ${attempts}/${maxAttempts})`);
 
     try {
-      // Trigger the IP rotation
+      // Trigger rotation
       await fetch(rotateUrl, { method: "GET", mode: "no-cors" });
 
-      // Wait for the proxy to apply the new IP
+      // Wait for proxy to apply new IP
       await new Promise(r => setTimeout(r, 2500));
 
-      // Update the displayed IP
+      // Update displayed IP
       await updateIPDisplay();
 
       // Check if IP actually changed
       if (currentIP && currentIP !== oldIP) {
-        // SUCCESS!
         bar.className = "success";
-        bar.textContent = `✓ IP Changed Successfully → ${currentIP}`;
-        
         showToast(`IP successfully changed to ${currentIP}`);
         btn.disabled = false;
-        return; // Done!
+        return; // ← Critical: stops the loop and function immediately
       }
 
-      // IP didn't change yet — update bar and continue
-      bar.className = "loading";
-      bar.textContent = `No change yet (still ${currentIP || 'unknown'}) — retrying... (${attempts}/${maxAttempts})`;
+      // IP didn't change — prepare for next attempt
+      showToast(`IP not changed yet (${attempts}/${maxAttempts}), retrying...`);
 
-      // Small delay before next attempt
-      await new Promise(r => setTimeout(r, 1000));
+      // Small delay before next rotation attempt
+      if (attempts < maxAttempts) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
 
-    } catch (e) {
-      console.error("Rotation attempt failed:", e);
-      bar.className = "error";
-      bar.textContent = `Error on attempt ${attempts} — retrying...`;
-      
-      // Wait a bit longer on error
+    } catch (error) {
+      console.error("Rotation error:", error);
+      showToast(`Error on attempt ${attempts}, retrying...`);
       await new Promise(r => setTimeout(r, 2000));
     }
   }
 
-  // If we get here: max attempts reached without success
+  // Only reaches here if max attempts exhausted without success
   bar.className = "error";
-  bar.textContent = `✗ Failed: IP did not change after ${maxAttempts} attempts (still ${currentIP || 'unknown'})`;
-  
-  showToast("IP rotation failed after maximum attempts");
+  showToast(`Failed: IP did not change after ${maxAttempts} attempts`);
   btn.disabled = false;
 }
-
 // Auto-refresh IP on load and every 30 seconds (optional)
     window.onload = () => {
       preloadSheets();
