@@ -559,56 +559,65 @@ async function updateIPDisplay() {
   window.ipAgeInterval = setInterval(updateAge, 1000);
 }
 
- async function rotateIP(maxAttempts = 10) {
+async function rotateIP(maxAttempts = 10) {
   const btn = document.getElementById("rotateIpBtn");
   const bar = document.getElementById("ipBar");
 
   btn.disabled = true;
   let attempts = 0;
+  let success = false;
 
-  // Get the initial IP if we don't have it yet
-  if (!currentIP) {
-    await updateIPDisplay();
-  }
-  let oldIP = currentIP;
+  // Ensure we have a clean starting IP
+  if (!currentIP) await updateIPDisplay();
+  let oldIP = currentIP?.trim() || "";
 
-  showToast("Rotating IP...");
+  showToast("Starting IP rotation...");
 
-  while (attempts < maxAttempts) {
+  while (attempts < maxAttempts && !success) {
     attempts++;
+    console.log(`Rotation attempt ${attempts}/${maxAttempts}`);
 
     try {
-      // Trigger rotation
       await fetch(rotateUrl, { method: "GET", mode: "no-cors" });
+      await new Promise(r => setTimeout(r, 2500)); // wait for proxy
 
-      // Wait for proxy to apply new IP
-      await new Promise(r => setTimeout(r, 2500));
-
-      // Update displayed IP
       await updateIPDisplay();
 
-      // Check if IP actually changed
-      if (currentIP && currentIP !== oldIP) {
+      const newIP = currentIP?.trim() || "";
+
+      if (newIP && newIP !== oldIP) {
+        console.log("IP changed successfully!", oldIP, "→", newIP);
+        success = true;
         bar.className = "success";
-        showToast(`IP successfully changed to ${currentIP}`);
-        btn.disabled = false;
-        return; // ← Critical: stops the loop and function immediately
+        showToast(`IP successfully changed to ${newIP}`);
+        break; // immediately exit the loop
+      } else {
+        console.log("IP not changed yet:", newIP, "(same as old:", oldIP, ")");
+        showToast(`No change yet (${attempts}/${maxAttempts}), retrying...`);
       }
 
-      // IP didn't change — prepare for next attempt
-      showToast(`IP not changed yet (${attempts}/${maxAttempts}), retrying...`);
-
-      // Small delay before next rotation attempt
-      if (attempts < maxAttempts) {
+      // Only wait between failed attempts
+      if (!success && attempts < maxAttempts) {
         await new Promise(r => setTimeout(r, 1000));
       }
 
     } catch (error) {
-      console.error("Rotation error:", error);
+      console.error("Error during rotation attempt:", error);
       showToast(`Error on attempt ${attempts}, retrying...`);
       await new Promise(r => setTimeout(r, 2000));
     }
   }
+
+  // This block runs ONLY ONCE, after loop ends
+  if (success) {
+    console.log("Rotation completed successfully.");
+  } else {
+    bar.className = "error";
+    showToast(`Failed: IP did not change after ${maxAttempts} attempts`);
+  }
+
+  btn.disabled = false; // Always re-enable at the end
+}
 
   // Only reaches here if max attempts exhausted without success
   bar.className = "error";
