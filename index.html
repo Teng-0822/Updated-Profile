@@ -559,6 +559,9 @@ async function updateIPDisplay() {
   window.ipAgeInterval = setInterval(updateAge, 1000);
 }
 
+
+
+
 async function rotateIP(maxAttempts = 10) {
   const btn = document.getElementById("rotateIpBtn");
   const bar = document.getElementById("ipBar");
@@ -567,62 +570,91 @@ async function rotateIP(maxAttempts = 10) {
   let attempts = 0;
   let success = false;
 
-  // Ensure we have a clean starting IP
-  if (!currentIP) await updateIPDisplay();
-  let oldIP = currentIP?.trim() || "";
+  // First, try to get the current IP reliably
+  showToast("Loading current IP...");
+  if (!await loadCurrentIPReliably()) {
+    showToast("Failed to load initial IP");
+    btn.disabled = false;
+    return;
+  }
+  let oldIP = currentIP.trim();
+  console.log("Starting IP:", oldIP);
 
-  showToast("Starting IP rotation...");
+  showToast("Rotating IP...");
 
   while (attempts < maxAttempts && !success) {
     attempts++;
-    console.log(`Rotation attempt ${attempts}/${maxAttempts}`);
+    console.log(`Attempt ${attempts}/${maxAttempts}`);
 
     try {
+      // Trigger rotation
       await fetch(rotateUrl, { method: "GET", mode: "no-cors" });
-      await new Promise(r => setTimeout(r, 2500)); // wait for proxy
+      showToast(`Rotating... waiting for new IP (${attempts}/${maxAttempts})`);
+      
+      // Wait for proxy to apply change
+      await new Promise(r => setTimeout(r, 3000)); // slightly longer
 
-      await updateIPDisplay();
+      // Try to load the new IP, with retry if it fails
+      if (await loadCurrentIPReliably()) {
+        const newIP = currentIP.trim();
 
-      const newIP = currentIP?.trim() || "";
-
-      if (newIP && newIP !== oldIP) {
-        console.log("IP changed successfully!", oldIP, "→", newIP);
-        success = true;
-        bar.className = "success";
-        showToast(`IP successfully changed to ${newIP}`);
-        break; // immediately exit the loop
+        if (newIP && newIP !== oldIP) {
+          console.log("SUCCESS! New IP:", newIP);
+          success = true;
+          bar.className = "success";
+          showToast(`IP changed successfully to ${newIP}`);
+          break;
+        } else {
+          console.log("No change yet:", newIP);
+          showToast(`Still ${newIP || 'unknown'} (no change), retrying...`);
+        }
       } else {
-        console.log("IP not changed yet:", newIP, "(same as old:", oldIP, ")");
-        showToast(`No change yet (${attempts}/${maxAttempts}), retrying...`);
+        showToast("Failed to check IP, retrying...");
       }
 
-      // Only wait between failed attempts
-      if (!success && attempts < maxAttempts) {
-        await new Promise(r => setTimeout(r, 1000));
+      // Delay before next rotation attempt
+      if (!success) {
+        await new Promise(r => setTimeout(r, 1500));
       }
 
     } catch (error) {
-      console.error("Error during rotation attempt:", error);
-      showToast(`Error on attempt ${attempts}, retrying...`);
+      console.error("Rotation error:", error);
+      showToast("Network error during rotation, retrying...");
       await new Promise(r => setTimeout(r, 2000));
     }
   }
 
-  // This block runs ONLY ONCE, after loop ends
-  if (success) {
-    console.log("Rotation completed successfully.");
-  } else {
+  // Final result
+  if (!success) {
     bar.className = "error";
     showToast(`Failed: IP did not change after ${maxAttempts} attempts`);
   }
 
-  btn.disabled = false; // Always re-enable at the end
+  btn.disabled = false;
 }
 
-  // Only reaches here if max attempts exhausted without success
-  bar.className = "error";
-  showToast(`Failed: IP did not change after ${maxAttempts} attempts`);
-  btn.disabled = false;
+// Helper: tries to update currentIP reliably with retries
+async function loadCurrentIPReliably(maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await updateIPDisplay(); // your existing function
+
+      if (currentIP && typeof currentIP === 'string' && currentIP.trim().length > 0) {
+        console.log("IP loaded successfully:", currentIP.trim());
+        return true;
+      }
+    } catch (err) {
+      console.error(`IP load attempt ${i+1} failed:`, err);
+    }
+
+    // Wait a bit before retry
+    if (i < maxRetries - 1) {
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }
+
+  console.error("Failed to load IP after retries");
+  return false;
 }
 // Auto-refresh IP on load and every 30 seconds (optional)
     window.onload = () => {
