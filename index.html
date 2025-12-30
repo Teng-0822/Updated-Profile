@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Profile Manager</title>
   <style>
     button, input, label {
@@ -23,45 +25,33 @@
     .container {
       max-width: 600px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 16px;
+      padding-bottom: 120px; /* Space for floating buttons */
     }
 
-    /* Header Card */
-    .header-card {
-      background: white;
-      border-radius: 20px;
-      padding: 24px;
-      margin-bottom: 20px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    /* Safe area for iPhone X notch */
+    @supports (padding: max(0px)) {
+      body {
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
     }
 
-    .header-card h1 {
-      margin: 0 0 8px 0;
-      font-size: 28px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .header-card .subtitle {
-      color: #718096;
-      font-size: 14px;
-      margin: 0;
-    }
+    /* Header Card - Removed */
 
     /* Navigation Buttons */
     .nav-buttons {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 10px;
+      margin-bottom: 16px;
     }
 
     .nav-buttons button {
-      padding: 14px;
-      font-size: 15px;
+      padding: 12px;
+      font-size: 14px;
       font-weight: 600;
       border: none;
       border-radius: 12px;
@@ -84,9 +74,9 @@
     /* Profile Box */
     #profileBox {
       background: white;
-      border-radius: 20px;
-      padding: 24px;
-      margin-bottom: 20px;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.15);
       transition: all 0.3s ease;
     }
@@ -104,7 +94,7 @@
     .profile-item {
       display: flex;
       align-items: center;
-      padding: 12px 0;
+      padding: 10px 0;
       border-bottom: 1px solid #e2e8f0;
     }
 
@@ -129,13 +119,13 @@
     .action-buttons {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 10px;
+      margin-bottom: 16px;
     }
 
     .action-buttons button {
-      padding: 16px;
-      font-size: 14px;
+      padding: 14px;
+      font-size: 13px;
       font-weight: 600;
       border: none;
       border-radius: 12px;
@@ -147,7 +137,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .action-buttons button:hover {
@@ -160,14 +150,14 @@
     /* IP Section */
     .ip-section {
       display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 10px;
+      margin-bottom: 16px;
     }
 
     .ip-card {
       background: white;
-      border-radius: 20px;
-      padding: 20px;
+      border-radius: 16px;
+      padding: 16px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.15);
       flex: 1;
     }
@@ -213,16 +203,17 @@
     }
 
     #ipBar {
-      width: 80px;
-      height: 80px;
-      border-radius: 16px;
+      width: 70px;
+      height: 70px;
+      border-radius: 14px;
       background: #e2e8f0;
       transition: all 0.4s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 32px;
+      font-size: 28px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      flex-shrink: 0;
     }
 
     #ipBar.loading {
@@ -468,7 +459,7 @@
 </head>
 <body>
   <div class="container">
-      <div class="nav-buttons">
+    <div class="nav-buttons">
       <button onclick="prevProfile()">⬅️ Previous</button>
       <button onclick="runNextContainer(); nextProfile()">Next ➡️</button>
       <button onclick="GotoFirst(); goToFirstProfile()">🔁 First</button>
