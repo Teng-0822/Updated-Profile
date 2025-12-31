@@ -933,30 +933,26 @@
         currentIP = oldIP;
         console.log("Current IP:", oldIP);
 
-        // Open the rotate URL in a hidden iframe to trigger the IP change
-        showToast("Opening rotation URL...");
+        // Fetch the rotate URL and check for success message
+        showToast("Sending IP rotation command...");
         
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = rotateUrl;
-        document.body.appendChild(iframe);
-        
-        // Wait for iframe to load
-        await new Promise((resolve) => {
-          iframe.onload = () => {
-            console.log("Rotation URL loaded");
-            resolve();
-          };
-          // Fallback timeout in case onload doesn't fire
-          setTimeout(resolve, 5000);
-        });
-        
-        // Remove iframe after loading
-        document.body.removeChild(iframe);
+        try {
+          const response = await fetch(rotateUrl);
+          const data = await response.json();
+          
+          if (data.message && data.message.includes("changeip command has been sent")) {
+            showToast("Rotation command sent! Waiting for IP change...");
+            console.log("Rotation command confirmed:", data.message);
+          } else {
+            showToast("Rotation triggered, waiting for IP change...");
+          }
+        } catch (e) {
+          // If JSON parsing fails, still continue
+          showToast("Rotation triggered, waiting for IP change...");
+          console.log("Rotation triggered (non-JSON response)");
+        }
         
         // Wait and check for IP change
-        showToast("Waiting for IP change...");
-        
         let newIP = oldIP;
         let checkCount = 0;
         const maxChecks = 60; // Check for up to 2 minutes
@@ -975,7 +971,7 @@
             
             // Update display
             document.getElementById("currentIP").textContent = newIP;
-            showToast(`IP changed to ${newIP}`);
+            showToast(`✅ IP changed to ${newIP}`);
             
             // Start age counter
             if (window.ipAgeInterval) clearInterval(window.ipAgeInterval);
@@ -997,13 +993,13 @@
         }
         
         // Timeout - IP didn't change
-        showToast("IP rotation timeout");
+        showToast("⚠️ IP didn't change after 2 minutes");
         bar.className = "error";
         bar.textContent = "❌";
         
       } catch (error) {
         console.error("Rotation error:", error);
-        showToast("Rotation failed");
+        showToast("❌ Rotation failed");
         bar.className = "error";
         bar.textContent = "❌";
       }
