@@ -909,93 +909,89 @@
       window.ipAgeInterval = setInterval(updateAge, 1000);
     }
 
-    async function rotateIP(maxAttempts = 10) {
+    async function rotateIP() {
       const btn = document.getElementById("rotateIpBtn");
       const bar = document.getElementById("ipBar");
 
       btn.disabled = true;
-      let attempts = 0;
-      let success = false;
+      bar.className = "loading";
+      bar.textContent = "⏳";
 
-      showToast("Loading current IP...");
-      if (!await loadCurrentIPReliably()) {
-        showToast("Failed to load initial IP");
-        btn.disabled = false;
-        return;
-      }
-      let oldIP = currentIP.trim();
-      console.log("Starting IP:", oldIP);
-
-      showToast("Rotating IP...");
-
-      while (attempts < maxAttempts && !success) {
-        attempts++;
-        console.log(`Attempt ${attempts}/${maxAttempts}`);
-
-        try {
-          await fetch(rotateUrl, { method: "GET", mode: "no-cors" });
-          showToast(`Rotating... waiting for new IP (${attempts}/${maxAttempts})`);
-          
-          await new Promise(r => setTimeout(r, 3000));
-
-          if (await loadCurrentIPReliably()) {
-            const newIP = currentIP.trim();
-
-            if (newIP && newIP !== oldIP) {
-              console.log("SUCCESS! New IP:", newIP);
-              success = true;
-              bar.className = "success";
-              bar.textContent = "✅";
-              showToast(`IP changed successfully to ${newIP}`);
-              break;
-            } else {
-              console.log("No change yet:", newIP);
-              showToast(`Still ${newIP || 'unknown'} (no change), retrying...`);
-            }
-          } else {
-            showToast("Failed to check IP, retrying...");
-          }
-
-          if (!success) {
-            await new Promise(r => setTimeout(r, 1500));
-          }
-
-        } catch (error) {
-          console.error("Rotation error:", error);
-          showToast("Network error during rotation, retrying...");
-          await new Promise(r => setTimeout(r, 2000));
+      try {
+        // Get current IP before rotation
+        showToast("Getting current IP...");
+        const oldIP = await fetchIP();
+        
+        if (!oldIP) {
+          showToast("Failed to get current IP");
+          bar.className = "error";
+          bar.textContent = "❌";
+          btn.disabled = false;
+          return;
         }
-      }
 
-      if (!success) {
+        currentIP = oldIP;
+        console.log("Current IP:", oldIP);
+
+        // Trigger rotation
+        showToast("Rotating IP...");
+        await fetch(rotateUrl, { method: "GET", mode: "no-cors" });
+        
+        // Wait and check for IP change
+        showToast("Waiting for IP change...");
+        
+        let newIP = oldIP;
+        let checkCount = 0;
+        const maxChecks = 60; // Check for up to 60 seconds
+        
+        while (newIP === oldIP && checkCount < maxChecks) {
+          await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds between checks
+          newIP = await fetchIP();
+          checkCount++;
+          
+          if (newIP && newIP !== oldIP) {
+            // IP changed successfully!
+            currentIP = newIP;
+            ipStartTime = Date.now();
+            bar.className = "success";
+            bar.textContent = "✅";
+            
+            // Update display
+            document.getElementById("currentIP").textContent = newIP;
+            showToast(`IP changed to ${newIP}`);
+            
+            // Start age counter
+            if (window.ipAgeInterval) clearInterval(window.ipAgeInterval);
+            const updateAge = () => {
+              if (!ipStartTime) return;
+              const seconds = Math.floor((Date.now() - ipStartTime) / 1000);
+              let text = "";
+              if (seconds < 60) text = seconds + "s";
+              else if (seconds < 3600) text = Math.floor(seconds / 60) + "m";
+              else text = Math.floor(seconds / 3600) + "h";
+              document.getElementById("ipAge").textContent = text;
+            };
+            updateAge();
+            window.ipAgeInterval = setInterval(updateAge, 1000);
+            
+            btn.disabled = false;
+            return;
+          }
+        }
+        
+        // Timeout - IP didn't change
+        showToast("IP rotation timeout");
         bar.className = "error";
         bar.textContent = "❌";
-        showToast(`Failed: IP did not change after ${maxAttempts} attempts`);
+        
+      } catch (error) {
+        console.error("Rotation error:", error);
+        showToast("Rotation failed");
+        bar.className = "error";
+        bar.textContent = "❌";
       }
 
       btn.disabled = false;
-    }
-
-    async function loadCurrentIPReliably(maxRetries = 3) {
-      for (let i = 0; i < maxRetries; i++) {
-        try {
-          await updateIPDisplay();
-
-          if (currentIP && typeof currentIP === 'string' && currentIP.trim().length > 0) {
-            console.log("IP loaded successfully:", currentIP.trim());
-            return true;
-          }
-        } catch (err) {
-          console.error(`IP load attempt ${i+1} failed:`, err);
-        }
-
-        if (i < maxRetries - 1) {
-          await new Promise(r => setTimeout(r, 1000));
-        }
-      }
-
-      console.error("Failed to load IP after retries");
-      return false;
     }
 
     window.onload = () => {
