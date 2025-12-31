@@ -523,7 +523,7 @@
             <div class="ip-value" id="currentIP">fetching...</div>
             <div class="ip-info" style="margin-top: 4px;">Age: <span id="ipAge">0s</span></div>
           </div>
-          <button id="rotateIpBtn" onclick="rotateIP(50)">🔄 Rotate</button>
+          <button id="rotateIpBtn" onclick="rotateIP()">🔄 Rotate</button>
         </div>
       </div>
       <div id="ipBar">⏳</div>
@@ -933,16 +933,33 @@
         currentIP = oldIP;
         console.log("Current IP:", oldIP);
 
-        // Trigger rotation
-        showToast("Rotating IP...");
-        await fetch(rotateUrl, { method: "GET", mode: "no-cors" });
+        // Open the rotate URL in a hidden iframe to trigger the IP change
+        showToast("Opening rotation URL...");
+        
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = rotateUrl;
+        document.body.appendChild(iframe);
+        
+        // Wait for iframe to load
+        await new Promise((resolve) => {
+          iframe.onload = () => {
+            console.log("Rotation URL loaded");
+            resolve();
+          };
+          // Fallback timeout in case onload doesn't fire
+          setTimeout(resolve, 5000);
+        });
+        
+        // Remove iframe after loading
+        document.body.removeChild(iframe);
         
         // Wait and check for IP change
         showToast("Waiting for IP change...");
         
         let newIP = oldIP;
         let checkCount = 0;
-        const maxChecks = 60; // Check for up to 60 seconds
+        const maxChecks = 60; // Check for up to 2 minutes
         
         while (newIP === oldIP && checkCount < maxChecks) {
           await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds between checks
