@@ -584,6 +584,10 @@
   <div id="toast"></div>
 
   <script>
+    // Add these variables near the top with your other lets
+    let userIP = '';
+    let previousIP = '';
+    let ipCheckInterval = null; // For periodic refresh if needed
     // Initialize URLs from localStorage or defaults
     const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxl9YgraQ_0ZHX90hsHf3L9U8QHDOVRtfegquHj-yLbbmeVdyvur_dToRDrsm9ThF7sMw/exec';
     const DEFAULT_ROTATE_URL = "https://i.fxdx.in/actionlinks/do/changeip/YTbojipTQnuowNvn2MkNoA";
@@ -858,40 +862,46 @@
       const ipSpan = document.getElementById("currentIP");
       const ageSpan = document.getElementById("ipAge");
       const bar = document.getElementById("ipBar");
-      
+    
       bar.className = "loading";
       bar.textContent = "⏳";
       ipSpan.textContent = "checking...";
       ageSpan.textContent = "-";
-
+    
       const newIP = await fetchIP();
-      
+    
       if (!newIP) {
         ipSpan.textContent = "error";
         ageSpan.textContent = "-";
         bar.className = "error";
         bar.textContent = "❌";
-        currentIP = null;
+        userIP = null;
         ipStartTime = null;
         return;
       }
-
-      const ipChanged = (newIP !== currentIP);
-      
-      if (ipChanged || currentIP === null) {
+    
+      // Detect change
+      const ipChanged = (newIP !== userIP);
+    
+      if (ipChanged || userIP === null || userIP === undefined) {
+        if (userIP && userIP !== newIP) {
+          previousIP = userIP;
+        }
+        userIP = newIP;
         currentIP = newIP;
         ipStartTime = Date.now();
         bar.className = "success";
         bar.textContent = "✅";
       } else {
-        bar.className = "loading";
-        bar.textContent = "⏳";
+        bar.className = "";
+        bar.textContent = "🌐";
       }
-
-      ipSpan.textContent = currentIP;
-
+    
+      ipSpan.textContent = userIP;
+    
+      // Update age counter
       if (window.ipAgeInterval) clearInterval(window.ipAgeInterval);
-      
+    
       const updateAge = () => {
         if (!ipStartTime) {
           ageSpan.textContent = "-";
@@ -904,113 +914,86 @@
         else text = Math.floor(seconds / 3600) + "h";
         ageSpan.textContent = text;
       };
-      
+    
       updateAge();
       window.ipAgeInterval = setInterval(updateAge, 1000);
     }
 
+
     async function rotateIP() {
-      const btn = document.getElementById("rotateIpBtn");
-      const bar = document.getElementById("ipBar");
-
-      btn.disabled = true;
-      bar.className = "loading";
-      bar.textContent = "⏳";
-
-      try {
-        // Get current IP before rotation
-        showToast("Getting current IP...");
-        const oldIP = await fetchIP();
-        
-        if (!oldIP) {
-          showToast("Failed to get current IP");
-          bar.className = "error";
-          bar.textContent = "❌";
-          btn.disabled = false;
+        const btn = document.getElementById("rotateIpBtn");
+        const bar = document.getElementById("ipBar");
+        const url = rotateUrl.trim();
+      
+        if (!url) {
+          showToast("⚠️ No rotation URL set");
           return;
         }
-
-        currentIP = oldIP;
-        console.log("Current IP:", oldIP);
-
-        // Fetch the rotate URL and check for success message
-        showToast("Sending IP rotation command...");
-        
-        try {
-          const response = await fetch(rotateUrl);
-          const data = await response.json();
-          
-          if (data.message && data.message.includes("changeip command has been sent")) {
-            showToast("Rotation command sent! Waiting for IP change...");
-            console.log("Rotation command confirmed:", data.message);
-          } else {
-            showToast("Rotation triggered, waiting for IP change...");
-          }
-        } catch (e) {
-          // If JSON parsing fails, still continue
-          showToast("Rotation triggered, waiting for IP change...");
-          console.log("Rotation triggered (non-JSON response)");
+      
+        // Store current IP as previous before rotating
+        if (userIP) {
+          previousIP = userIP;
         }
-        
-        // Wait and check for IP change
-        let newIP = oldIP;
-        let checkCount = 0;
-        const maxChecks = 60; // Check for up to 2 minutes
-        
-        while (newIP === oldIP && checkCount < maxChecks) {
-          await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds between checks
-          newIP = await fetchIP();
-          checkCount++;
-          
-          if (newIP && newIP !== oldIP) {
-            // IP changed successfully!
+      
+        btn.disabled = true;
+        bar.className = "loading";
+        bar.textContent = "⏳";
+      
+        showToast("🔄 Sending rotation command...");
+      
+        // Trigger rotation (same as before, but with cache-bust)
+        new Image().src = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+      
+        // Wait a bit then start checking for IP change
+        let attempts = 0;
+        const maxAttempts = 30; // ~60 seconds total
+      
+        const checkIPChange = async () => {
+          attempts++;
+          const newIP = await fetchIP();
+      
+          if (newIP && newIP !== userIP && newIP !== previousIP) {
+            // Success! IP changed
+            userIP = newIP;
             currentIP = newIP;
             ipStartTime = Date.now();
+      
+            document.getElementById("currentIP").textContent = newIP;
             bar.className = "success";
             bar.textContent = "✅";
-            
-            // Update display
-            document.getElementById("currentIP").textContent = newIP;
-            showToast(`✅ IP changed to ${newIP}`);
-            
-            // Start age counter
-            if (window.ipAgeInterval) clearInterval(window.ipAgeInterval);
-            const updateAge = () => {
-              if (!ipStartTime) return;
-              const seconds = Math.floor((Date.now() - ipStartTime) / 1000);
-              let text = "";
-              if (seconds < 60) text = seconds + "s";
-              else if (seconds < 3600) text = Math.floor(seconds / 60) + "m";
-              else text = Math.floor(seconds / 3600) + "h";
-              document.getElementById("ipAge").textContent = text;
-            };
-            updateAge();
-            window.ipAgeInterval = setInterval(updateAge, 1000);
-            
+      
+            showToast(`✅ IP changed → ${newIP}`);
+      
             btn.disabled = false;
             return;
           }
-        }
-        
-        // Timeout - IP didn't change
-        showToast("⚠️ IP didn't change after 2 minutes");
-        bar.className = "error";
-        bar.textContent = "❌";
-        
-      } catch (error) {
-        console.error("Rotation error:", error);
-        showToast("❌ Rotation failed");
-        bar.className = "error";
-        bar.textContent = "❌";
+      
+          if (attempts >= maxAttempts) {
+            // Timeout
+            bar.className = "error";
+            bar.textContent = "❌";
+            showToast("⚠️ IP did not change after 60s");
+            btn.disabled = false;
+            return;
+          }
+      
+          // Continue checking every 2 seconds
+          setTimeout(checkIPChange, 2000);
+        };
+      
+        // Start checking after 5 seconds
+        setTimeout(checkIPChange, 5000);
       }
 
-      btn.disabled = false;
-    }
+    
 
     window.onload = () => {
+      // Load saved rotate URL into modal input
+      document.getElementById('rotateUrlInput').value = rotateUrl;
+    
       preloadSheets();
       updateIPDisplay();
-      setInterval(updateIPDisplay, 30000);
+      setInterval(updateIPDisplay, 30000); // Keep refreshing every 30s
     };
   </script>
 </body>
