@@ -8,7 +8,7 @@
   <style>
     button, input, label {
       touch-action: manipulation;
-    }   
+    }
     * {
       box-sizing: border-box;
     }
@@ -21,15 +21,12 @@
       color: #f5f5f5;
       touch-action: manipulation;
     }
-
     .container {
       max-width: 600px;
       margin: 0 auto;
       padding: 16px;
-      padding-bottom: 90px; /* Space for floating buttons bar */
+      padding-bottom: 90px;
     }
-
-    /* Safe area for iPhone X notch */
     @supports (padding: max(0px)) {
       body {
         padding-top: max(12px, env(safe-area-inset-top));
@@ -38,17 +35,12 @@
         padding-bottom: env(safe-area-inset-bottom);
       }
     }
-
-    /* Header Card - Removed */
-
-    /* Navigation Buttons */
     .nav-buttons {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
       margin-bottom: 16px;
     }
-
     .nav-buttons button {
       padding: 12px;
       font-size: 14px;
@@ -59,73 +51,40 @@
       color: #f5f5f5;
       cursor: pointer;
       transition: all 0.2s ease;
-      box-shadow: none;
       border: 1px solid #2a2a2a;
     }
-
     .nav-buttons button:hover {
       transform: translateY(-2px);
       background: #2a2a2a;
     }
-
     .nav-buttons button:active {
       transform: translateY(0);
       background: #0a0a0a;
     }
-
-    /* Profile Box */
     #profileBox {
       background: #1a1a1a;
       border-radius: 16px;
       padding: 20px;
       margin-bottom: 16px;
-      box-shadow: none;
-      transition: all 0.3s ease;
       border: 1px solid #2a2a2a;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
     }
-
     #profileBox.active {
       border: 1px solid #00ba7c;
       box-shadow: 0 0 0 1px rgba(0, 186, 124, 0.1);
     }
-
     #profileBox.suspended {
       border: 1px solid #ff4444;
       box-shadow: 0 0 0 1px rgba(255, 68, 68, 0.1);
     }
-
-    .profile-item {
-      display: flex;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #2a2a2a;
-    }
-
-    .profile-item:last-child {
-      border-bottom: none;
-    }
-
-    .profile-label {
-      font-weight: 600;
-      color: #999;
-      min-width: 120px;
-      font-size: 14px;
-    }
-
-    .profile-value {
-      color: #f5f5f5;
-      font-size: 15px;
-      font-weight: 500;
-    }
-
-    /* Action Buttons */
     .action-buttons {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
       margin-bottom: 16px;
     }
-
     .action-buttons button {
       padding: 14px;
       font-size: 13px;
@@ -136,132 +95,74 @@
       color: #f5f5f5;
       cursor: pointer;
       transition: all 0.2s ease;
-      box-shadow: none;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
       border: 1px solid #2a2a2a;
     }
-
     .action-buttons button:hover {
       transform: translateY(-2px);
       background: #2a2a2a;
     }
-
     .action-buttons button:active {
       background: #0a0a0a;
       transform: translateY(0);
     }
-
-    /* IP Section */
-    .ip-section {
-      display: flex;
-      gap: 10px;
+    /* New 3-box IP section */
+    .ip-section-new {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
       margin-bottom: 16px;
     }
-
-    .ip-card {
+    .ip-box {
       background: #1a1a1a;
       border-radius: 16px;
       padding: 16px;
-      box-shadow: none;
-      flex: 1;
+      text-align: center;
       border: 1px solid #2a2a2a;
-    }
-
-    .ip-header {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 110px;
     }
-
-    .ip-info {
-      font-size: 13px;
-      color: #999;
-    }
-
-    .ip-value {
-      font-weight: 700;
-      color: #f5f5f5;
-      font-size: 16px;
-    }
-
-    #rotateIpBtn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
+    .ip-box button {
+      width: 100%;
+      padding: 12px;
       background: #f5f5f5;
       color: #101010;
+      border: none;
+      border-radius: 10px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: none;
+      margin-bottom: 8px;
     }
-
-    #rotateIpBtn:hover {
-      transform: translateY(-2px);
-      background: #fff;
-    }
-
-    #rotateIpBtn:active {
-      transform: translateY(0);
-    }
-
-    #rotateIpBtn:disabled {
-      opacity: 0.5;
+    .ip-box button:disabled {
+      opacity: 0.6;
       cursor: not-allowed;
     }
-
-    #ipBar {
-      width: 70px;
-      height: 70px;
-      border-radius: 14px;
-      background: #2a2a2a;
-      transition: all 0.4s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      box-shadow: none;
-      flex-shrink: 0;
-      border: 1px solid #3a3a3a;
+    .ip-box .label {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 8px;
     }
-
-    #ipBar.loading {
-      background: #2a2a2a;
-      animation: pulse 1.5s infinite;
+    .ip-box .value {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f5f5f5;
+      word-break: break-all;
     }
-
-    #ipBar.success {
-      background: #00ba7c;
-      border-color: #00ba7c;
-      animation: bounce 0.5s;
+    #statusBox {
+      background: #2a2a2a !important;
+      transition: background 0.4s ease;
     }
-
-    #ipBar.error {
-      background: #ff4444;
-      border-color: #ff4444;
-      animation: shake 0.5s;
+    #statusBox.green {
+      background: #00ba7c !important;
     }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+    #statusBox.red {
+      background: #ff4444 !important;
     }
-
-    @keyframes bounce {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
-    }
-
     /* Floating Buttons */
     .floating-buttons {
       position: fixed;
@@ -277,13 +178,11 @@
       z-index: 1000;
       border-top: 1px solid #2a2a2a;
     }
-
     @supports (padding: max(0px)) {
       .floating-buttons {
         padding-bottom: max(12px, env(safe-area-inset-bottom));
       }
     }
-
     .floating-btn {
       flex: 1;
       height: 50px;
@@ -294,20 +193,16 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: none;
-      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
     }
-
     .floating-btn:active {
       transform: scale(0.95);
       background: #fff;
     }
-
-    /* Modal */
+    /* Modals */
     .modal {
       display: none;
       position: fixed;
@@ -322,7 +217,6 @@
       justify-content: center;
       padding: 20px;
     }
-
     .modal-content {
       background: #1a1a1a;
       padding: 28px;
@@ -331,17 +225,9 @@
       width: 100%;
       max-height: 80vh;
       overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      position: relative;
       border: 1px solid #2a2a2a;
+      position: relative;
     }
-
-    .modal-content h3 {
-      margin: 0 0 20px 0;
-      font-size: 22px;
-      color: #f5f5f5;
-    }
-
     .modal-close {
       position: absolute;
       top: 20px;
@@ -354,19 +240,15 @@
       color: #999;
       font-size: 20px;
       cursor: pointer;
-      transition: all 0.2s ease;
     }
-
     .modal-close:hover {
       background: #3a3a3a;
       color: #f5f5f5;
       transform: rotate(90deg);
     }
-
     .url-input-group {
       margin-bottom: 20px;
     }
-
     .url-input-group label {
       display: block;
       font-weight: 600;
@@ -374,30 +256,25 @@
       margin-bottom: 8px;
       font-size: 14px;
     }
-
     .url-input-group input {
       width: 100%;
       padding: 12px 16px;
       border: 1px solid #2a2a2a;
       border-radius: 10px;
       font-size: 14px;
-      transition: all 0.2s ease;
       background: #101010;
       color: #f5f5f5;
     }
-
     .url-input-group input:focus {
       outline: none;
       border-color: #f5f5f5;
       background: #0a0a0a;
     }
-
     .modal-buttons {
       display: flex;
       gap: 12px;
       margin-top: 24px;
     }
-
     .modal-buttons button {
       flex: 1;
       padding: 12px;
@@ -406,52 +283,15 @@
       font-weight: 600;
       font-size: 15px;
       cursor: pointer;
-      transition: all 0.2s ease;
     }
-
     .btn-primary {
       background: #f5f5f5;
       color: #101010;
     }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      background: #fff;
-    }
-
     .btn-secondary {
       background: #2a2a2a;
       color: #f5f5f5;
     }
-
-    .btn-secondary:hover {
-      background: #3a3a3a;
-    }
-
-    /* Tables */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-    }
-
-    table th, table td {
-      border: 1px solid #2a2a2a;
-      padding: 12px;
-      font-size: 14px;
-      text-align: left;
-    }
-
-    table th {
-      background: #2a2a2a;
-      color: #f5f5f5;
-      font-weight: 600;
-    }
-
-    table tr:hover {
-      background: #2a2a2a;
-    }
-
     /* Toast */
     #toast {
       visibility: hidden;
@@ -469,17 +309,14 @@
       z-index: 3000;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     }
-
     #toast.show {
       visibility: visible;
       animation: slideUp 0.3s, slideDown 0.3s 2.5s;
     }
-
     @keyframes slideUp {
       from { bottom: 0; opacity: 0; }
       to { bottom: 30px; opacity: 1; }
     }
-
     @keyframes slideDown {
       from { bottom: 30px; opacity: 1; }
       to { bottom: 0; opacity: 0; }
@@ -495,15 +332,9 @@
       <button onclick="preloadSheets()">🔄 Refresh</button>
     </div>
 
+    <!-- Profile Box - Username Only -->
     <div id="profileBox">
-      <div class="profile-item">
-        <span class="profile-label">Username</span>
-        <span class="profile-value" id="username">-</span>
-      </div>
-      <div class="profile-item">
-        <span class="profile-label">Container ID</span>
-        <span class="profile-value" id="container">-</span>
-      </div>
+      <span id="username">-</span>
     </div>
 
     <div class="action-buttons">
@@ -515,22 +346,26 @@
       <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
     </div>
 
-    <div class="ip-section">
-      <div class="ip-card">
-        <div class="ip-header">
-          <div>
-            <div class="ip-info">Current IP</div>
-            <div class="ip-value" id="currentIP">fetching...</div>
-            <div class="ip-info" style="margin-top: 4px;">Age: <span id="ipAge">0s</span></div>
-          </div>
-          <button id="rotateIpBtn" onclick="rotateIP()">🔄 Rotate</button>
-        </div>
+    <!-- New 3-box IP Section -->
+    <div class="ip-section-new">
+      <div class="ip-box">
+        <div class="label">1. Store & Rotate</div>
+        <button id="storeRotateBtn" onclick="storeAndRotate()">🔄 Rotate Now</button>
+        <div class="value" id="storedIP">—</div>
       </div>
-      <div id="ipBar">⏳</div>
+      <div class="ip-box">
+        <div class="label">2. Compare</div>
+        <button onclick="compareIPs()">🔍 Check Change</button>
+        <div class="value" id="currentIPDisplay">fetching...</div>
+      </div>
+      <div class="ip-box" id="statusBox">
+        <div class="label">3. Result (15s)</div>
+        <div class="value" id="statusText">—</div>
+      </div>
     </div>
   </div>
 
-  <!-- Floating Buttons Bar -->
+  <!-- Floating Buttons - Both kept -->
   <div class="floating-buttons">
     <button class="floating-btn" onclick="showModal('sheetUrlModal')" title="Change Sheet URL">
       📊 Sheet URL
@@ -556,7 +391,7 @@
     </div>
   </div>
 
-  <!-- Rotate URL Modal -->
+  <!-- Rotate URL Modal - KEPT -->
   <div id="rotateUrlModal" class="modal">
     <div class="modal-content">
       <button class="modal-close" onclick="hideModal('rotateUrlModal')">✕</button>
@@ -584,44 +419,27 @@
   <div id="toast"></div>
 
   <script>
-    // Add these variables near the top with your other lets
-    let userIP = '';
-    let previousIP = '';
-    let ipCheckInterval = null; // For periodic refresh if needed
-    // Initialize URLs from localStorage or defaults
+    // URLs
     const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxl9YgraQ_0ZHX90hsHf3L9U8QHDOVRtfegquHj-yLbbmeVdyvur_dToRDrsm9ThF7sMw/exec';
-    const DEFAULT_ROTATE_URL = "https://i.fxdx.in/actionlinks/do/changeip/YTbojipTQnuowNvn2MkNoA";
-    
     let sheetUrl = localStorage.getItem('sheetUrl') || DEFAULT_SHEET_URL;
-    let rotateUrl = localStorage.getItem('rotateUrl') || DEFAULT_ROTATE_URL;
-    
+    let rotateUrl = localStorage.getItem('rotateUrl') || "https://i.fxdx.in/actionlinks/do/changeip/YTbojipTQnuowNvn2MkNoA";
+
     let profiles = [], currentProfile = 0;
     let sheetCache = {}, pickedPostIndexes = {};
-    let currentIP = null;
-    let ipStartTime = null;
-    let usedCaptionIndexes = [];
-    let lastPickedText = "";
+    let userIP = null;
+    let storedIP = null;
+    let statusTimeout = null;
 
     function runNextContainer() {
       window.location.href = "shortcuts://run-shortcut?name=Next%20container";
     }
-
     function GotoFirst() {
       window.location.href = "shortcuts://run-shortcut?name=first";
     }
-
     function linkPost() {
-      try {
-        showToast("Opening the link post...");
-        window.open("https://www.threads.net/@piperallyglow/post/DSgboU8DEia");
-        showToast("Link post opened!");
-      } catch (e) {
-        showToast("Error opening link post");
-        console.error(e);
-      }
+      window.open("https://www.threads.net/@piperallyglow/post/DSgboU8DEia");
     }
 
-    // URL Management Functions
     function saveSheetUrl() {
       const input = document.getElementById('sheetUrlInput');
       const newUrl = input.value.trim();
@@ -663,21 +481,18 @@
       try {
         setButtonsDisabled(true);
         showToast("Refreshing data...");
-
         sheetCache = {};
         const savedIndex = parseInt(localStorage.getItem('lastProfileIndex')) || 0;
-
         profiles = await fetchSheet('Accounts');
-        sheetCache['Accounts'] = profiles;
         sheetCache['Posts'] = await fetchSheet('Posts');
         sheetCache['Reply'] = await fetchSheet('Reply');
         sheetCache['Comments'] = await fetchSheet('Comments');
         sheetCache['Caption'] = await fetchSheet('Caption');
-
         showToast("Sheets refreshed!");
         displayProfile(savedIndex);
       } catch (e) {
         showToast("Refresh failed");
+        console.error(e);
       } finally {
         setButtonsDisabled(false);
       }
@@ -687,21 +502,15 @@
       if (profiles.length === 0) return;
       currentProfile = (index + profiles.length) % profiles.length;
       localStorage.setItem('lastProfileIndex', currentProfile);
-
       const profile = profiles[currentProfile];
-      const box = document.getElementById('profileBox');
-
       document.getElementById('username').textContent = profile.username || '-';
-      document.getElementById('container').textContent = profile.container || '-';
 
+      const box = document.getElementById('profileBox');
       box.className = '';
       if (profile.status) {
         const status = (profile.status || "").toLowerCase();
-        if (status === "active") {
-          box.classList.add('active');
-        } else if (status === "suspended") {
-          box.classList.add('suspended');
-        }
+        if (status === "active") box.classList.add('active');
+        else if (status === "suspended") box.classList.add('suspended');
       }
     }
 
@@ -711,15 +520,10 @@
 
     function showModal(id) {
       if (id === 'profileModal') loadAccounts();
-      if (id === 'sheetUrlModal') {
-        document.getElementById('sheetUrlInput').value = sheetUrl;
-      }
-      if (id === 'rotateUrlModal') {
-        document.getElementById('rotateUrlInput').value = rotateUrl;
-      }
+      if (id === 'sheetUrlModal') document.getElementById('sheetUrlInput').value = sheetUrl;
+      if (id === 'rotateUrlModal') document.getElementById('rotateUrlInput').value = rotateUrl;
       document.getElementById(id).style.display = 'flex';
     }
-
     function hideModal(id) {
       document.getElementById(id).style.display = 'none';
     }
@@ -732,7 +536,6 @@
           accounts.map(p => `<tr><td>${p.username || '-'}</td><td>${p.container || '-'}</td></tr>`).join('');
       } catch (e) {
         showToast("Failed to load accounts");
-        console.error(e);
       }
     }
 
@@ -741,10 +544,8 @@
       fetchSheet(sheetName).then(data => {
         const choice = data[Math.floor(Math.random() * data.length)];
         let value = Object.values(choice)[0];
-
         const loc = profiles[currentProfile]?.Location || profiles[currentProfile]?.location || "";
         value = value.replace(/\(loc\)/gi, loc);
-
         navigator.clipboard.writeText(value);
         showToast(`${sheetName} copied!`);
       }).catch(() => showToast(`Failed to load ${sheetName}`));
@@ -752,47 +553,24 @@
 
     async function openThreadsMediaPicker() {
       const sheetName = 'Caption';
-
       try {
         showToast(`Picking from ${sheetName}...`);
-
         const data = await fetchSheet(sheetName);
-
-        if (!data || data.length === 0) {
-          showToast(`No captions found in ${sheetName}`);
-          return;
-        }
-
-        if (usedCaptionIndexes.length >= data.length) {
-          usedCaptionIndexes = [];
-          showToast("All captions used, restarting pool");
-        }
-
-        const unused = data
-          .map((row, index) => ({ index, row }))
-          .filter(item => !usedCaptionIndexes.includes(item.index));
-
-        if (unused.length === 0) {
-          usedCaptionIndexes = [];
-        }
-
+        if (!data || data.length === 0) return showToast(`No captions found`);
+        let used = JSON.parse(localStorage.getItem('usedCaptionIndexes') || '[]');
+        if (used.length >= data.length) { used = []; localStorage.setItem('usedCaptionIndexes', '[]'); }
+        const unused = data.map((row, i) => ({i, row})).filter(x => !used.includes(x.i));
         const selected = unused[Math.floor(Math.random() * unused.length)];
-        usedCaptionIndexes.push(selected.index);
-
+        used.push(selected.i);
+        localStorage.setItem('usedCaptionIndexes', JSON.stringify(used));
         let value = Object.values(selected.row)[0];
-
-        const location = profiles[currentProfile]?.Location || profiles[currentProfile]?.location || "";
-        value = value.replace(/\(loc\)/gi, location);
-
+        const loc = profiles[currentProfile]?.Location || profiles[currentProfile]?.location || "";
+        value = value.replace(/\(loc\)/gi, loc);
         await navigator.clipboard.writeText(value);
-
         showToast("Caption copied!");
-
         window.open("https://www.threads.net/intent/post");
-
       } catch (e) {
         showToast(`Failed to load ${sheetName}`);
-        console.error(e);
       }
     }
 
@@ -802,29 +580,21 @@
         const posts = await fetchSheet('Posts');
         const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
         const today = days[new Date().getDay()];
-
-        const todayPosts = posts
-          .map((row, index) => ({ index, text: row[today] }))
-          .filter(p => p.text?.trim());
-
-        if (!pickedPostIndexes[today]) pickedPostIndexes[today] = [];
-        const unused = todayPosts.filter(p => !pickedPostIndexes[today].includes(p.index));
-
+        const todayPosts = posts.map((row, i) => ({i, text: row[today]})).filter(p => p.text?.trim());
+        let picked = JSON.parse(localStorage.getItem(`pickedPost_${today}`) || '[]');
+        const unused = todayPosts.filter(p => !picked.includes(p.i));
         if (unused.length === 0) {
-          pickedPostIndexes[today] = [];
-          showToast("All posts used, restarting pool");
-          return pickTodayPost();
+          picked = [];
+          localStorage.setItem(`pickedPost_${today}`, '[]');
+          showToast("All posts used today, restarting");
         }
-
         const selected = unused[Math.floor(Math.random() * unused.length)];
-        pickedPostIndexes[today].push(selected.index);
-
-        const location = profiles[currentProfile]?.location || profiles[currentProfile]?.Location || "";
-        const finalText = selected.text.replace(/\(loc\)/gi, location);
-
-        lastPickedText = finalText;
+        picked.push(selected.i);
+        localStorage.setItem(`pickedPost_${today}`, JSON.stringify(picked));
+        const loc = profiles[currentProfile]?.location || profiles[currentProfile]?.Location || "";
+        const finalText = selected.text.replace(/\(loc\)/gi, loc);
         const encoded = encodeURIComponent(finalText);
-        window.open(`https://www.threads.net/intent/post?text=${encoded}`, "_blank");
+        window.open(`https://www.threads.net/intent/post?text=${encoded}`);
         showToast("Opening Threads…");
       } catch (e) {
         showToast("Error picking post");
@@ -832,19 +602,18 @@
     }
 
     function openThreads() {
-      window.open(`https://threads.com/`, "_blank");
+      window.open("https://threads.net/");
     }
 
     function setButtonsDisabled(disabled) {
-      const buttons = document.querySelectorAll('button:not(.floating-btn)');
-      buttons.forEach(btn => btn.disabled = disabled);
+      document.querySelectorAll('button:not(.floating-btn)').forEach(btn => btn.disabled = disabled);
     }
 
     function showToast(message) {
       const toast = document.getElementById("toast");
       toast.textContent = message;
       toast.className = "show";
-      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+      setTimeout(() => toast.className = "", 2500);
     }
 
     // IP Functions
@@ -858,142 +627,71 @@
       }
     }
 
-    async function updateIPDisplay() {
-      const ipSpan = document.getElementById("currentIP");
-      const ageSpan = document.getElementById("ipAge");
-      const bar = document.getElementById("ipBar");
-    
-      bar.className = "loading";
-      bar.textContent = "⏳";
-      ipSpan.textContent = "checking...";
-      ageSpan.textContent = "-";
-    
+    async function updateCurrentIPDisplay() {
       const newIP = await fetchIP();
-    
-      if (!newIP) {
-        ipSpan.textContent = "error";
-        ageSpan.textContent = "-";
-        bar.className = "error";
-        bar.textContent = "❌";
-        userIP = null;
-        ipStartTime = null;
-        return;
-      }
-    
-      // Detect change
-      const ipChanged = (newIP !== userIP);
-    
-      if (ipChanged || userIP === null || userIP === undefined) {
-        if (userIP && userIP !== newIP) {
-          previousIP = userIP;
-        }
-        userIP = newIP;
-        currentIP = newIP;
-        ipStartTime = Date.now();
-        bar.className = "success";
-        bar.textContent = "✅";
-      } else {
-        bar.className = "";
-        bar.textContent = "🌐";
-      }
-    
-      ipSpan.textContent = userIP;
-    
-      // Update age counter
-      if (window.ipAgeInterval) clearInterval(window.ipAgeInterval);
-    
-      const updateAge = () => {
-        if (!ipStartTime) {
-          ageSpan.textContent = "-";
-          return;
-        }
-        const seconds = Math.floor((Date.now() - ipStartTime) / 1000);
-        let text = "";
-        if (seconds < 60) text = seconds + "s";
-        else if (seconds < 3600) text = Math.floor(seconds / 60) + "m";
-        else text = Math.floor(seconds / 3600) + "h";
-        ageSpan.textContent = text;
-      };
-    
-      updateAge();
-      window.ipAgeInterval = setInterval(updateAge, 1000);
+      userIP = newIP;
+      document.getElementById("currentIPDisplay").textContent = newIP || "error";
+      return newIP;
     }
 
+    async function storeAndRotate() {
+      const btn = document.getElementById("storeRotateBtn");
+      btn.disabled = true;
+      showToast("Fetching IP & sending rotate...");
 
-    async function rotateIP() {
-        const btn = document.getElementById("rotateIpBtn");
-        const bar = document.getElementById("ipBar");
-        const url = rotateUrl.trim();
-      
-        if (!url) {
-          showToast("⚠️ No rotation URL set");
-          return;
-        }
-      
-        // Store current IP as previous before rotating
-        if (userIP) {
-          previousIP = userIP;
-        }
-      
-        btn.disabled = true;
-        bar.className = "loading";
-        bar.textContent = "⏳";
-      
-        showToast("🔄 Sending rotation command...");
-      
-        // Trigger rotation (same as before, but with cache-bust)
-        new Image().src = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
-      
-        // Wait a bit then start checking for IP change
-        let attempts = 0;
-        const maxAttempts = 30; // ~60 seconds total
-      
-        const checkIPChange = async () => {
-          attempts++;
-          const newIP = await fetchIP();
-      
-          if (newIP && newIP !== userIP && newIP !== previousIP) {
-            // Success! IP changed
-            userIP = newIP;
-            currentIP = newIP;
-            ipStartTime = Date.now();
-      
-            document.getElementById("currentIP").textContent = newIP;
-            bar.className = "success";
-            bar.textContent = "✅";
-      
-            showToast(`✅ IP changed → ${newIP}`);
-      
-            btn.disabled = false;
-            return;
-          }
-      
-          if (attempts >= maxAttempts) {
-            // Timeout
-            bar.className = "error";
-            bar.textContent = "❌";
-            showToast("⚠️ IP did not change after 60s");
-            btn.disabled = false;
-            return;
-          }
-      
-          // Continue checking every 2 seconds
-          setTimeout(checkIPChange, 2000);
-        };
-      
-        // Start checking after 5 seconds
-        setTimeout(checkIPChange, 5000);
+      const current = await updateCurrentIPDisplay();
+      if (!current) {
+        showToast("Failed to fetch IP");
+        btn.disabled = false;
+        return;
       }
 
-    
+      storedIP = current;
+      document.getElementById("storedIP").textContent = storedIP;
+
+      // Trigger rotation using saved/custom URL
+      new Image().src = rotateUrl + (rotateUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+
+      showToast("Rotate command sent. Wait then compare.");
+      btn.disabled = false;
+    }
+
+    async function compareIPs() {
+      if (!storedIP) {
+        showToast("First click 'Rotate Now' to store IP");
+        return;
+      }
+
+      showToast("Checking current IP...");
+      const current = await updateCurrentIPDisplay();
+
+      const statusBox = document.getElementById("statusBox");
+      const statusText = document.getElementById("statusText");
+
+      if (statusTimeout) clearTimeout(statusTimeout);
+
+      if (current && current !== storedIP) {
+        statusBox.className = "ip-box green";
+        statusText.textContent = "CHANGED ✅";
+        showToast("IP changed successfully!");
+      } else {
+        statusBox.className = "ip-box red";
+        statusText.textContent = "SAME ❌";
+        showToast("IP did not change");
+      }
+
+      statusTimeout = setTimeout(() => {
+        statusBox.className = "ip-box";
+        statusText.textContent = "—";
+      }, 15000);
+    }
 
     window.onload = () => {
-      // Load saved rotate URL into modal input
+      document.getElementById('sheetUrlInput').value = sheetUrl;
       document.getElementById('rotateUrlInput').value = rotateUrl;
-    
       preloadSheets();
-      updateIPDisplay();
-      setInterval(updateIPDisplay, 30000); // Keep refreshing every 30s
+      updateCurrentIPDisplay();
+      setInterval(updateCurrentIPDisplay, 30000);
     };
   </script>
 </body>
