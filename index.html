@@ -107,61 +107,46 @@
       transform: translateY(0);
     }
 
-    /* Compact IP Section */
-    .ip-section-new {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .ip-box {
+    /* New IP Section (Auto Checker) */
+    .ip-checker {
       background: #1a1a1a;
-      border-radius: 14px;
-      padding: 12px;
-      text-align: center;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
       border: 1px solid #2a2a2a;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      min-height: 90px;
+      text-align: center;
     }
-    .ip-box button {
-      width: 100%;
-      padding: 10px;
+    .ip-checker button {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
       background: #f5f5f5;
       color: #101010;
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 13px;
       cursor: pointer;
-      margin-bottom: 6px;
     }
-    .ip-box button:disabled {
+    .ip-checker button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
-    .ip-box .label {
-      font-size: 12px;
-      color: #999;
-      margin-bottom: 4px;
+    #ipBox {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      margin-left: 16px;
+      border: 3px solid #444;
+      border-radius: 8px;
+      background: #eee;
+      vertical-align: middle;
     }
-    .ip-box .value {
-      font-size: 14px;
-      font-weight: 700;
-      color: #f5f5f5;
-      word-break: break-all;
-      line-height: 1.3;
-    }
-    #statusBox {
-      background: #2a2a2a !important;
-      transition: background 0.4s ease;
-    }
-    #statusBox.green {
-      background: #00ba7c !important;
-    }
-    #statusBox.red {
-      background: #ff4444 !important;
+    #ipCountdown {
+      margin-left: 16px;
+      font-size: 16px;
+      color: #aaa;
+      display: inline-block;
+      min-width: 80px;
+      vertical-align: middle;
     }
 
     .floating-buttons {
@@ -202,7 +187,6 @@
       transform: scale(0.95);
       background: #fff;
     }
-
     .modal {
       display: none;
       position: fixed;
@@ -265,7 +249,6 @@
       background: #2a2a2a;
       color: #f5f5f5;
     }
-
     #toast {
       visibility: hidden;
       min-width: 250px;
@@ -304,11 +287,9 @@
       <button onclick="GotoFirst(); goToFirstProfile()">🔁 First</button>
       <button onclick="preloadSheets()">🔄 Refresh</button>
     </div>
-
     <div id="profileBox">
       <span id="username">-</span>
     </div>
-
     <div class="action-buttons">
       <button onclick="showModal('profileModal')">📄 Accounts</button>
       <button onclick="linkPost()">🔗 Link Post</button>
@@ -318,22 +299,11 @@
       <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
     </div>
 
-    <!-- IP Section - Manual Check Only -->
-    <div class="ip-section-new">
-      <div class="ip-box">
-        <div class="label">1. Store & Rotate</div>
-        <button id="storeRotateBtn" onclick="storeAndRotate()">🔄 Rotate Now</button>
-        <div class="value" id="storedIP">—</div>
-      </div>
-      <div class="ip-box">
-        <div class="label">2. Compare</div>
-        <button onclick="compareIPs()">🔍 Check Change</button>
-        <div class="value" id="currentIPDisplay">—</div>
-      </div>
-      <div class="ip-box" id="statusBox">
-        <div class="label">3. Result (15s)</div>
-        <div class="value" id="statusText">—</div>
-      </div>
+    <!-- New IP Change Checker Section -->
+    <div class="ip-checker">
+      <button id="changeBtn">🔄 Change IP</button>
+      <div id="ipBox"></div>
+      <div id="ipCountdown"></div>
     </div>
   </div>
 
@@ -357,7 +327,6 @@
       </div>
     </div>
   </div>
-
   <div id="rotateUrlModal" class="modal">
     <div class="modal-content">
       <button class="modal-close" onclick="hideModal('rotateUrlModal')">✕</button>
@@ -372,7 +341,6 @@
       </div>
     </div>
   </div>
-
   <div id="profileModal" class="modal">
     <div class="modal-content">
       <button class="modal-close" onclick="hideModal('profileModal')">✕</button>
@@ -387,11 +355,8 @@
     const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxl9YgraQ_0ZHX90hsHf3L9U8QHDOVRtfegquHj-yLbbmeVdyvur_dToRDrsm9ThF7sMw/exec';
     let sheetUrl = localStorage.getItem('sheetUrl') || DEFAULT_SHEET_URL;
     let rotateUrl = localStorage.getItem('rotateUrl') || "https://i.fxdx.in/actionlinks/do/changeip/YTbojipTQnuowNvn2MkNoA";
-
     let profiles = [], currentProfile = 0;
     let sheetCache = {};
-    let storedIP = null;
-    let statusTimeout = null;
 
     function runNextContainer() { window.location.href = "shortcuts://run-shortcut?name=Next%20container"; }
     function GotoFirst() { window.location.href = "shortcuts://run-shortcut?name=first"; }
@@ -467,6 +432,7 @@
       if (id === 'rotateUrlModal') document.getElementById('rotateUrlInput').value = rotateUrl;
       document.getElementById(id).style.display = 'flex';
     }
+
     function hideModal(id) { document.getElementById(id).style.display = 'none'; }
 
     async function loadAccounts() {
@@ -536,10 +502,18 @@
       setTimeout(() => t.className = "", 3000);
     }
 
-    // IP Functions - Manual Only
-    async function fetchIP() {
+    // === New IP Change Checker ===
+    const CHANGE_IP_URL = rotateUrl; // uses the saved rotate URL
+    const IP_API = 'https://api.ipify.org?format=json';
+    const changeBtn = document.getElementById('changeBtn');
+    const ipBox = document.getElementById('ipBox');
+    const ipCountdownEl = document.getElementById('ipCountdown');
+    let oldIP = null;
+    let countdownTimer = null;
+
+    async function getIP() {
       try {
-        const res = await fetch("https://api.ipify.org?format=json");
+        const res = await fetch(IP_API, { cache: 'no-store' });
         const data = await res.json();
         return data.ip;
       } catch {
@@ -547,84 +521,53 @@
       }
     }
 
-    async function storeAndRotate() {
-      const btn = document.getElementById("storeRotateBtn");
-      btn.disabled = true;
-      showToast("Sending rotate command...");
-
-      try {
-        const response = await fetch(rotateUrl + '?t=' + Date.now(), {
-          method: 'GET',
-          cache: 'no-cache'
-        });
-
-        if (!response.ok) throw new Error("HTTP error");
-
-        const json = await response.json();
-        if (json.message === "changeip command has been sent") {
-          showToast("✅ Command sent!");
-
-          const currentIP = await fetchIP();
-          if (currentIP) {
-            storedIP = currentIP;
-            document.getElementById("storedIP").textContent = storedIP;
-            showToast("Old IP stored. Click Check Change after waiting.");
-          } else {
-            showToast("Failed to fetch current IP");
-          }
-        } else {
-          throw new Error("Wrong message");
+    function startCountdown(seconds, callback) {
+      clearInterval(countdownTimer);
+      ipCountdownEl.textContent = seconds + 's';
+      countdownTimer = setInterval(() => {
+        seconds--;
+        ipCountdownEl.textContent = seconds + 's';
+        if (seconds <= 0) {
+          clearInterval(countdownTimer);
+          ipCountdownEl.textContent = '';
+          callback();
         }
-      } catch (err) {
-        showToast("❌ Failed to send command");
-        console.error(err);
-      } finally {
-        btn.disabled = false;
+      }, 1000);
+    }
+
+    async function checkIPLoop() {
+      ipBox.style.background = 'yellow';
+      const newIP = await getIP();
+      if (newIP && newIP !== oldIP) {
+        ipBox.style.background = 'green';
+        changeBtn.disabled = false;
+        showToast("IP changed successfully! ✅");
+      } else {
+        ipBox.style.background = 'red';
+        startCountdown(10, checkIPLoop);
       }
     }
 
-    async function compareIPs() {
-      if (!storedIP) {
-        showToast("Click 'Rotate Now' first!");
+    changeBtn.addEventListener('click', async () => {
+      changeBtn.disabled = true;
+      ipBox.style.background = '#eee';
+      ipCountdownEl.textContent = '';
+      oldIP = await getIP();
+      if (!oldIP) {
+        showToast("Could not get current IP");
+        changeBtn.disabled = false;
         return;
       }
-
-      const checkBtn = event.target;
-      checkBtn.disabled = true;
-      showToast("Fetching current IP...");
-
-      const currentIP = await fetchIP();
-
-      document.getElementById("currentIPDisplay").textContent = currentIP || "error";
-
-      const statusBox = document.getElementById("statusBox");
-      const statusText = document.getElementById("statusText");
-
-      if (statusTimeout) clearTimeout(statusTimeout);
-
-      if (currentIP && currentIP !== storedIP) {
-        statusBox.className = "ip-box green";
-        statusText.textContent = "CHANGED ✅";
-        showToast("IP changed successfully!");
-      } else {
-        statusBox.className = "ip-box red";
-        statusText.textContent = "SAME ❌";
-        showToast("No change yet");
-      }
-
-      statusTimeout = setTimeout(() => {
-        statusBox.className = "ip-box";
-        statusText.textContent = "—";
-      }, 15000);
-
-      checkBtn.disabled = false;
-    }
+      showToast("Sending rotate command...");
+      fetch(CHANGE_IP_URL + '?t=' + Date.now()).catch(() => {});
+      // Wait 45 seconds before first check
+      startCountdown(45, checkIPLoop);
+    });
 
     window.onload = () => {
       document.getElementById('sheetUrlInput').value = sheetUrl;
       document.getElementById('rotateUrlInput').value = rotateUrl;
       preloadSheets();
-      // No auto IP fetch on load
     };
   </script>
 </body>
