@@ -107,7 +107,7 @@
       transform: translateY(0);
     }
 
-    /* New IP Section (Auto Checker) */
+    /* IP Change Checker Section */
     .ip-checker {
       background: #1a1a1a;
       border-radius: 16px;
@@ -299,7 +299,7 @@
       <button onclick="pickRandom('Comments'); openThreads()">💭 Pick Comment</button>
     </div>
 
-    <!-- New IP Change Checker Section -->
+    <!-- IP Change Checker Section -->
     <div class="ip-checker">
       <button id="changeBtn">🔄 Change IP</button>
       <div id="ipBox"></div>
@@ -502,18 +502,20 @@
       setTimeout(() => t.className = "", 3000);
     }
 
-    // === New IP Change Checker ===
-    const CHANGE_IP_URL = rotateUrl; // uses the saved rotate URL
+    // === Improved IP Change Checker with Response Validation ===
+    let CHANGE_IP_URL = rotateUrl; // will be updated if rotateUrl changes
     const IP_API = 'https://api.ipify.org?format=json';
     const changeBtn = document.getElementById('changeBtn');
     const ipBox = document.getElementById('ipBox');
     const ipCountdownEl = document.getElementById('ipCountdown');
     let oldIP = null;
     let countdownTimer = null;
+    let commandRetryTimer = null;
 
     async function getIP() {
       try {
         const res = await fetch(IP_API, { cache: 'no-store' });
+        if (!res.ok) return null;
         const data = await res.json();
         return data.ip;
       } catch {
@@ -544,7 +546,28 @@
         showToast("IP changed successfully! ✅");
       } else {
         ipBox.style.background = 'red';
+        showToast("No change yet, rechecking...");
         startCountdown(10, checkIPLoop);
+      }
+    }
+
+    async function sendRotateCommand() {
+      try {
+        const response = await fetch(CHANGE_IP_URL + '?t=' + Date.now(), {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const json = await response.json();
+        if (json.message === "changeip command has been sent") {
+          return 'success';
+        } else {
+          return 'wrong_message';
+        }
+      } catch (err) {
+        return 'error';
       }
     }
 
@@ -552,21 +575,49 @@
       changeBtn.disabled = true;
       ipBox.style.background = '#eee';
       ipCountdownEl.textContent = '';
+      clearInterval(countdownTimer);
+      clearTimeout(commandRetryTimer);
+
       oldIP = await getIP();
       if (!oldIP) {
-        showToast("Could not get current IP");
+        showToast("Could not fetch current IP");
         changeBtn.disabled = false;
         return;
       }
+
       showToast("Sending rotate command...");
-      fetch(CHANGE_IP_URL + '?t=' + Date.now()).catch(() => {});
-      // Wait 45 seconds before first check
-      startCountdown(45, checkIPLoop);
+
+      const result = await sendRotateCommand();
+
+      if (result === 'success') {
+        showToast("Command sent successfully! ✅");
+        // Wait 45 seconds before first IP check
+        startCountdown(45, checkIPLoop);
+      } else {
+        if (result === 'wrong_message') {
+          showToast("Unexpected response, retrying in 15s...");
+        } else {
+          showToast("Failed to send command, retrying in 15s...");
+        }
+        // Retry sending the command after 15 seconds
+        commandRetryTimer = setTimeout(() => {
+          changeBtn.click(); // re-trigger the whole process
+        }, 15000);
+      }
     });
+
+    // Update CHANGE_IP_URL if rotateUrl changes (after saving in modal)
+    // We can override saveRotateUrl to update it
+    const originalSaveRotateUrl = saveRotateUrl;
+    saveRotateUrl = function() {
+      originalSaveRotateUrl();
+      CHANGE_IP_URL = rotateUrl; // refresh the const-like variable
+    };
 
     window.onload = () => {
       document.getElementById('sheetUrlInput').value = sheetUrl;
       document.getElementById('rotateUrlInput').value = rotateUrl;
+      CHANGE_IP_URL = rotateUrl;
       preloadSheets();
     };
   </script>
