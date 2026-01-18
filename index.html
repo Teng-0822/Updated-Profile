@@ -406,6 +406,7 @@
       if (newUrl) {
         rotateUrl = newUrl;
         localStorage.setItem('rotateUrl', newUrl);
+        CHANGE_IP_URL = rotateUrl;
         showToast("Rotate URL saved!");
         hideModal('rotateUrlModal');
       } else showToast("Invalid URL");
@@ -530,131 +531,94 @@
       setTimeout(() => t.className = "", 3000);
     }
 
-    // === New IP Rotation Logic Exactly As Requested ===
+    // === IP Rotation Logic (from TOOLS) ===
     let CHANGE_IP_URL = rotateUrl;
     const IP_API = 'https://api.ipify.org?format=json';
     const changeBtn = document.getElementById('changeBtn');
     const ipBox = document.getElementById('ipBox');
     const ipCountdownEl = document.getElementById('ipCountdown');
 
+    let isRotating = false;
     let oldIP = null;
-    let checkInterval = null;
-    let commandRetryTimeout = null;
-    let totalWaitTime = 0; // tracks time since starting IP checks
 
     async function getIP() {
       try {
         const res = await fetch(IP_API, { cache: 'no-store' });
-        if (!res.ok) return null;
+        if (!res.ok) return 'error';
         const data = await res.json();
         return data.ip;
       } catch {
-        return null;
+        return 'error';
       }
     }
 
-    function startCountdown(seconds, callback) {
-      let remaining = seconds;
-      ipCountdownEl.textContent = remaining + 's';
-      const timer = setInterval(() => {
-        remaining--;
-        ipCountdownEl.textContent = remaining + 's';
-        if (remaining <= 0) {
-          clearInterval(timer);
-          ipCountdownEl.textContent = '';
-          callback();
-        }
-      }, 1000);
-    }
-
-    async function sendRotateCommand() {
+    async function triggerRotate() {
       try {
-        const response = await fetch(CHANGE_IP_URL + '?t=' + Date.now(), {
-          method: 'GET',
-          cache: 'no-cache'
-        });
-        if (!response.ok) throw new Error('HTTP error');
-        const json = await response.json();
-        if (json.message === "changeip command has been sent") {
-          return true;
-        }
-        return false;
-      } catch (err) {
+        await fetch(CHANGE_IP_URL + '?t=' + Date.now());
+        return true;
+      } catch (e) {
         return false;
       }
     }
 
-    async function startIPChecking() {
-      totalWaitTime = 0;
-      ipBox.style.background = 'yellow';
-
-      const checkOnce = async () => {
-        const newIP = await getIP();
-        if (newIP && newIP !== oldIP) {
-          // SUCCESS: IP changed
-          ipBox.style.background = 'green';
-          clearInterval(checkInterval);
-          changeBtn.disabled = false;
-          showToast("IP changed successfully! ✅");
-          ipCountdownEl.textContent = '';
-          return;
-        }
-
-        totalWaitTime += 5;
-
-        if (totalWaitTime >= 60) {
-          // After 1 minute without change → retry command
-          showToast("No change after 1 min → retrying command...");
-          clearInterval(checkInterval);
-          initiateRotate();
-        }
-      };
-
-      // First check after 45s already done → start polling every 5s
-      checkInterval = setInterval(checkOnce, 5000);
-      // Immediate first poll in case it changes very fast
-      checkOnce();
-    }
-
-    async function initiateRotate() {
-      clearTimeout(commandRetryTimeout);
-      clearInterval(checkInterval);
-
-      const success = await sendRotateCommand();
-      if (success) {
-        showToast("Command sent! Waiting 45s...");
-        startCountdown(45, startIPChecking);
-      } else {
-        showToast("Failed to confirm command → retry in 50s");
-        commandRetryTimeout = setTimeout(initiateRotate, 50000);
-      }
-    }
-
-    changeBtn.addEventListener('click', async () => {
-      changeBtn.disabled = true;
-      ipBox.style.background = '#eee';
-      ipCountdownEl.textContent = '';
-      clearInterval(checkInterval);
-      clearTimeout(commandRetryTimeout);
-      totalWaitTime = 0;
-
-      oldIP = await getIP();
-      if (!oldIP) {
-        showToast("Could not fetch current IP");
+    async function rotateIP() {
+      if (isRotating) {
+        isRotating = false;
+        showToast('Stopped');
         changeBtn.disabled = false;
+        ipBox.style.background = '#eee';
+        ipCountdownEl.textContent = '';
         return;
       }
 
-      showToast("Sending rotate command...");
-      initiateRotate();
-    });
+      oldIP = await getIP();
+      if (oldIP === 'error') {
+        showToast("Could not fetch current IP");
+        return;
+      }
 
-    // Update URL when changed in modal
-    const originalSaveRotateUrl = saveRotateUrl;
-    saveRotateUrl = function() {
-      originalSaveRotateUrl();
-      CHANGE_IP_URL = rotateUrl;
-    };
+      ipBox.style.background = 'yellow';
+      changeBtn.disabled = true;
+      isRotating = true;
+      let attempt = 0;
+
+      const loop = async () => {
+        attempt++;
+        ipCountdownEl.textContent = '#' + attempt;
+        showToast('Attempt ' + attempt);
+
+        await triggerRotate();
+        await new Promise(r => setTimeout(r, 3000));
+
+        const newIP = await getIP();
+
+        if (newIP !== oldIP && oldIP !== '...' && newIP !== 'error') {
+          // SUCCESS: IP changed
+          ipBox.style.background = 'green';
+          ipCountdownEl.textContent = '';
+          showToast('SUCCESS: ' + newIP);
+          isRotating = false;
+          changeBtn.disabled = false;
+
+          // Reset to gray after 5 seconds
+          setTimeout(() => {
+            ipBox.style.background = '#eee';
+          }, 5000);
+        } else if (attempt < 20 && isRotating) {
+          setTimeout(loop, 1000);
+        } else {
+          showToast('Max attempts');
+          ipBox.style.background = '#eee';
+          ipCountdownEl.textContent = '';
+          isRotating = false;
+          changeBtn.disabled = false;
+        }
+      };
+
+      loop();
+    }
+
+    changeBtn.addEventListener('click', rotateIP);
 
     window.onload = () => {
       document.getElementById('sheetUrlInput').value = sheetUrl;
