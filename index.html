@@ -309,6 +309,7 @@
 
   <div class="floating-buttons">
     <button class="floating-btn" onclick="showModal('sheetUrlModal')">📊 Sheet URL</button>
+    <button class="floating-btn" onclick="showModal('linkUrlModal')">🔗 Link URL</button>
     <button class="floating-btn" onclick="showModal('rotateUrlModal')">🔄 Rotate URL</button>
   </div>
 
@@ -324,6 +325,20 @@
       <div class="modal-buttons" style="display:flex;gap:12px;margin-top:24px;">
         <button class="btn-secondary" onclick="hideModal('sheetUrlModal')">Cancel</button>
         <button class="btn-primary" onclick="saveSheetUrl()">Save</button>
+      </div>
+    </div>
+  </div>
+  <div id="linkUrlModal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="hideModal('linkUrlModal')">✕</button>
+      <h3>Change Link Post URL</h3>
+      <div class="url-input-group">
+        <label>Link Post URL</label>
+        <input type="text" id="linkUrlInput" placeholder="Enter your link post URL">
+      </div>
+      <div class="modal-buttons" style="display:flex;gap:12px;margin-top:24px;">
+        <button class="btn-secondary" onclick="hideModal('linkUrlModal')">Cancel</button>
+        <button class="btn-primary" onclick="saveLinkUrl()">Save</button>
       </div>
     </div>
   </div>
@@ -353,14 +368,16 @@
 
   <script>
     const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxl9YgraQ_0ZHX90hsHf3L9U8QHDOVRtfegquHj-yLbbmeVdyvur_dToRDrsm9ThF7sMw/exec';
+    const DEFAULT_LINK_URL = 'https://www.threads.net/@piperallyglow/post/DSgboU8DEia';
     let sheetUrl = localStorage.getItem('sheetUrl') || DEFAULT_SHEET_URL;
+    let linkUrl = localStorage.getItem('linkUrl') || DEFAULT_LINK_URL;
     let rotateUrl = localStorage.getItem('rotateUrl') || "https://i.fxdx.in/actionlinks/do/changeip/YTbojipTQnuowNvn2MkNoA";
     let profiles = [], currentProfile = 0;
     let sheetCache = {};
 
     function runNextContainer() { window.location.href = "shortcuts://run-shortcut?name=Next%20container"; }
     function GotoFirst() { window.location.href = "shortcuts://run-shortcut?name=first"; }
-    function linkPost() { window.open("https://www.threads.net/@piperallyglow/post/DSgboU8DEia"); }
+    function linkPost() { window.open(linkUrl); }
 
     function saveSheetUrl() {
       const newUrl = document.getElementById('sheetUrlInput').value.trim();
@@ -371,6 +388,16 @@
         showToast("Sheet URL saved!");
         hideModal('sheetUrlModal');
         preloadSheets();
+      } else showToast("Invalid URL");
+    }
+
+    function saveLinkUrl() {
+      const newUrl = document.getElementById('linkUrlInput').value.trim();
+      if (newUrl) {
+        linkUrl = newUrl;
+        localStorage.setItem('linkUrl', newUrl);
+        showToast("Link URL saved!");
+        hideModal('linkUrlModal');
       } else showToast("Invalid URL");
     }
 
@@ -429,6 +456,7 @@
     function showModal(id) {
       if (id === 'profileModal') loadAccounts();
       if (id === 'sheetUrlModal') document.getElementById('sheetUrlInput').value = sheetUrl;
+      if (id === 'linkUrlModal') document.getElementById('linkUrlInput').value = linkUrl;
       if (id === 'rotateUrlModal') document.getElementById('rotateUrlInput').value = rotateUrl;
       document.getElementById(id).style.display = 'flex';
     }
@@ -630,6 +658,7 @@
 
     window.onload = () => {
       document.getElementById('sheetUrlInput').value = sheetUrl;
+      document.getElementById('linkUrlInput').value = linkUrl;
       document.getElementById('rotateUrlInput').value = rotateUrl;
       CHANGE_IP_URL = rotateUrl;
       preloadSheets();
